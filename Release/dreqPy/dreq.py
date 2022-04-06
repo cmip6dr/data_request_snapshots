@@ -513,6 +513,8 @@ class config(object):
     self.strings = strings
     self.docl = []
 
+    self._desc = {}
+    self.__desc__ = self._desc
     self.tt0 = {}
     self.tt1 = {}
     self.ttl2 = []
@@ -662,6 +664,7 @@ class config(object):
     for i in self.coll['__core__'].items:
       ec[i.label] = i
 
+
     for v in vl:
       t = self.parsevcfg(v)
       tables[t[0].label] = t
@@ -673,6 +676,7 @@ class config(object):
       self.tt1[t[0].label].level = t.header.level
       self.tt1[t[0].label].uid = t.header.uid
       self.tt1[t[0].label].itemLabelMode = t.header.itemLabelMode
+      self._desc[t[0].label] = t.header.description
       self.ttl2 += [thisc.__dict__[a] for a in t.attributes]
     mil = [t[1] for t in self._t2.attributes.items()]
     self.coll['__main__'] = self.ntf( self._t2.header, self._t2.attributes, self.ttl2 )

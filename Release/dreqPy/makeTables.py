@@ -191,7 +191,7 @@ class styles(object):
         try:
           nv = len( targ._inx.iref_by_sect[cmv.vid].a['CMORvar'] )
         except:
-          print 'FAILED: %s' % cmv.uid
+          print ( 'FAILED: %s' % cmv.uid )
           raise
         return '<li>%s.%s [%s]: %s {groups: %s, vars: %s}</li>' % ( cmv.label,cmv.mipTable, targ.__href__(odir='../u/',label=targ.priority) , cmv.__href__(odir='../u/',label=cmv.title), ng, nv  )
     else:
@@ -239,7 +239,7 @@ class styles(object):
       try:
         t3 = t2._inx.uid[t2.refid]
       except:
-        print t2.uid, t2.__dict__
+        print ( [t2.uid, t2.__dict__] )
         raise
       if t3._h.label == 'remarks':
         return '<li>%s [%s]: %s</li>' % ( targ.__href__(odir='../u/', label=targ.title), t2.__href__(odir='../u/', label=t2.title),"Link to request group broken"  )
@@ -361,6 +361,7 @@ htmlStyle['structure']    = {'getIrefs':['__all__']}
 htmlStyle['cellMethods']  = {'getIrefs':['__all__']}
 htmlStyle['standardname'] = {'getIrefs':['__all__']}
 htmlStyle['varRelations'] = {'getIrefs':['__all__']}
+htmlStyle['modelConfig'] = {'getIrefs':['__all__']}
 htmlStyle['varRelLnk']    = {'getIrefs':['__all__']}
 htmlStyle['units']        = {'getIrefs':['__all__']}
 htmlStyle['timeSlice']    = {'getIrefs':['__all__']}
@@ -378,7 +379,7 @@ def run():
   assert os.path.isdir( 'html/index' ), 'Before running this script you need to create "html", "html/index" and "html/u" sub-directories, or edit the call to dq.makeHtml, and refernces to "u" in style lines below'
   assert os.path.isdir( 'tables' ), 'Before running this script you need to create a "tables" sub-directory, or edit the table_utils.makeTab class'
 
-  dq = dreq.loadDreq( htmlStyles=htmlStyle, manifest='out/dreqManifest.txt' )
+  dq = dreq.loadDreq( htmlStyles=htmlStyle, manifest='docs/dreqManifest.txt' )
 ##
 ## add special styles to dq object "itemStyle" dictionary.
 ##

@@ -10,7 +10,7 @@
 <xs:restriction base="xs:token"><xs:enumeration value="integer"/><xs:enumeration value="real"/><xs:enumeration value="double"/><xs:enumeration value="character"/></xs:restriction></xs:simpleType>
 
 <xs:simpleType name="st__sliceType">
-<xs:restriction base="xs:token"><xs:enumeration value="relativeRange"/><xs:enumeration value="simpleRange"/><xs:enumeration value="dayList"/><xs:enumeration value="yearList"/><xs:enumeration value="sliceList"/><xs:enumeration value="branchedYears"/><xs:enumeration value="monthlyClimatology"/></xs:restriction></xs:simpleType>
+<xs:restriction base="xs:token"><xs:enumeration value="relativeRange"/><xs:enumeration value="simpleRange"/><xs:enumeration value="dayList"/><xs:enumeration value="yearList"/><xs:enumeration value="sliceList"/><xs:enumeration value="branchedYears"/><xs:enumeration value="monthlyClimatology"/><xs:enumeration value="siblingBranchClimatology"/><xs:enumeration value="monthlyClimatologyFinal"/></xs:restriction></xs:simpleType>
 
 <xs:simpleType name="st__configurationType">
 <xs:restriction base="xs:token"><xs:enumeration value="size"/><xs:enumeration value="category"/><xs:enumeration value="ioOption"/><xs:enumeration value="capability"/></xs:restriction></xs:simpleType>
@@ -72,7 +72,7 @@
    xs:stringRedundant?expt;
    xs:stringName of experiment or group of experimentsrlid;
    xs:stringIdentifier of Corresponding Request Linkesid;
-   xs:stringIdentifier experiment(s): a link to an experiment, an experiment group or a MIPesidComment;
+   xs:stringA link to an experiment, an experiment group or a MIPesidComment;
    xs:stringComment on experiment(s) linked to.preset;
    xs:integerOption to override priority set in each variable grouptreset;
    xs:integerOption to override tier set for experiment(s)ny;
@@ -173,7 +173,7 @@
    xs:stringRecord Titleuid;
    aa:st__uidRecord Identifiertitle;
    xs:stringLong namestid;
-   xs:stringLink to a record specifying the structure of the variable (dimensions and associated variable attributes).vid;
+   xs:stringLink to a record specifying the structure of the variablevid;
    xs:stringMIP Variabledeflate;
    xs:stringDeflate: NetCDF compression parameterdeflate_level;
    xs:stringDeflate Level: NetCDF compression parametershuffle;
@@ -184,11 +184,11 @@
    xs:stringCMOR Directive PositivemipTableSection;
    xs:stringSection of a tablemtid;
    xs:stringLink to MIP table recordmipTable;
-   xs:stringThe MIP table: each table identifies a collection of variablesprov;
+   xs:stringThe MIP tableprov;
    xs:stringProvenanceprocessing;
-   xs:stringProcessing notesprovNote;
+   xs:stringProcessing NotesprovNote;
    xs:stringProvenance Notefrequency;
-   xs:stringFrequency of time steps to be archived.rowIndex;
+   xs:stringFrequency of Time Steps to be ArchivedrowIndex;
    xs:integerRow index of entry in source sheetdescription;
    xs:stringDescriptionsubGroup;
    xs:stringSub-group of variables in a table</xs:documentation></xs:annotation>
@@ -452,8 +452,8 @@
    xs:stringTarget identifier: the record ID of the item this refers to.tattr;
    xs:stringTarget attribute: an attribute of the target item, or 'ALL'description;
    xs:stringFree text remarks -- unless there are specific restrictions associated with the class attribute of this remarkclass;
-   xs:stringDifferent classes of remark support a range of specialised usages: free (a free text comment), modelTypeReq (a model type requirement), modelTypeExcl (a model type exclusion), varAlt (an alternative variable that my be used instead of this one), varSup (an alternative variable which, if selected makes this one redundant), attChange (a change in the value of an attribute -- old value provided in 'techNote').qid;
-   xs:stringIdentifier required for classes modelTypeReq, modelTypeExcl, varAlt, varSup. For the first two classes, the identifier points to a model type specification, for the last two it points to an output variable specification.techNote;
+   xs:stringClass categorisation of remarksqid;
+   xs:stringIdentifier linking to a related record.techNote;
    xs:stringOptional additional machine readable content (though not restricted by the schema)prov;
    xs:stringProvenance</xs:documentation></xs:annotation>
 <xs:complexType name="ct__remarks_vocabItem">
@@ -489,11 +489,11 @@
    xs:stringIdentifier for experiment groupmip;
    xs:stringMIP defining experimentmcfg;
    xs:stringModel Source Typestier;
-   aa:st__integerListMonIncTier of experimentnstart;
-   xs:integerNumber of start datesstarty;
+   aa:st__integerListMonIncTier of Experimentnstart;
+   xs:integerNumber of Start Datesstarty;
    xs:stringStart yearendy;
    xs:stringEnd yearyps;
-   xs:integerYears per simulationensz;
+   xs:integerYears per Simulation Including all Start Yearsensz;
    aa:st__integerListMonIncEnsemble sizentot;
    xs:integerTotal number of yearscomment;
    xs:stringComment</xs:documentation></xs:annotation>
@@ -614,14 +614,14 @@
    xs:stringRecord Titlelabel;
    xs:stringVariable Namesn;
    xs:stringCF Standard Nameunits;
-   xs:stringUnitsdescription;
+   xs:stringUnits of Measuredescription;
    xs:stringRecord Descriptiontitle;
    xs:stringLong nameprocnote;
-   aa:st__stringListProcessing notesprocComment;
-   xs:stringProcessing commentsprov;
-   xs:stringProvenanceuid;
-   aa:st__uidRecord identifierprovmip;
-   xs:stringMIP defining this variablesunid;
+   aa:st__stringListProcessing NotesprocComment;
+   xs:stringProcessing Commentsprov;
+   xs:stringNotes on Provenance of Variable Specificationsuid;
+   aa:st__uidRecord Identifierprovmip;
+   xs:stringMIP Defining this Variableunid;
    xs:stringLink to Units section</xs:documentation></xs:annotation>
 <xs:complexType name="ct__var_vocabItem">
 <xs:attribute name="id" type="xs:string"/>

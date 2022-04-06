@@ -77,6 +77,7 @@ if not oldpython:
 class xlsx(object):
   def __init__(self,fn,xls=True,txt=False,txtOpts=None):
     self.xls=xls
+    self.fn = fn
     self.txt=txt
     self.txtOpts = txtOpts
     self.mcfgNote = 'Reference Volume (1 deg. atmosphere, 0.5 deg. ocean)'
@@ -146,7 +147,14 @@ class xlsx(object):
                raise
 
      if self.txt:
-        self.oo.write( '\t'.join( [t,] + [x.replace('"',"'") for x in orec]) + '\n' )
+        try:
+          self.oo.write( '\t'.join( [t,] + [x.replace('"',"'") for x in orec]) + '\n' )
+        except:
+          print ( orec )
+          print ( [type(x) for x in orec] )
+          print ( self.fn )
+          self.oo.close()
+          raise
 
   def varrec(self,j,orec):
      if self.xls:
@@ -414,7 +422,7 @@ class makeTab(object):
                 print ( 'ERROR: unexpected tslice type: %s, %s' % (cmv.uid, tslice[cmv.uid] ) )
               elif len(  tslice[cmv.uid] ) == 3:
                 x,priority,grid = tslice[cmv.uid]
-                orec[0] = priority
+                orec[0] = str(priority)
                 if x != None:
                    tslab,tsmode,a,b = x
                    orec += [tslab,tsmode,'',grid]

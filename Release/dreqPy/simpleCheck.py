@@ -94,7 +94,7 @@ class check1(checkbase):
       import dreq
     except:
       from . import dreq
-    print ( 'Dreq software import checked' )
+    print ( 'Dreq software import checked: %s' % dreq.version )
     self.ok = True
 
   def _ch02_importSample(self):

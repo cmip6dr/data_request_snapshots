@@ -15,6 +15,9 @@ jsh='''
 %s
 ''' % dreq.dreqMonitoring
 
+##
+## "T" and "G" used for "TB" and "GB" in order to squeeze table onto one page
+##
 def vfmt( x ):
             if x < 1.e9:
               s = '%sM' % int( x*1.e-6 )
@@ -27,7 +30,7 @@ def vfmt( x ):
             elif x < 1.e18:
               s = '%3iP' % int( x*1.e-15 )
             else:
-              s = '{:,.2f}'.format( x*1.e-9 ) 
+              s = '{:,.2f}B'.format( x*1.e-9 ) 
             return s
 
 class c1(object):
@@ -38,7 +41,8 @@ class c2(object):
   def __init__(self):
     self.a = collections.defaultdict( list )
 
-hmap0 = {'CMIP6':'Historical'}
+hmap0 = {'CMIP6':'Historical', 'ScenarioMIP':'\cellcolor{llgray} ScenarioMIP'}
+hmaph0 = {'CMIP6':'Historical', 'ScenarioMIP':'ScenarioMIP'}
 class r1(object):
   infoLog = collections.defaultdict( list )
   def __init__(self,sc,mt_tables,tiermax=1,pmax=1,only=False,vols=None,fnm='new',msgLevel=0):
@@ -49,7 +53,8 @@ class r1(object):
     assert vols == None or type(vols) == type( () ), 'vols argument must be none or tuple of length 2: %s' % type(vols)
     self.dq = sc.dq
     self.mips = ['CMIP'] + scope_utils.mips
-    self.mipsp = self.mips[:-4]
+    self.mipsp = [x for x in self.mips if x not in scope_utils.mipsdiag]
+
     self.sc = sc
     self.pmax=pmax
     self.efnsfx = ''
@@ -198,8 +203,8 @@ class r1(object):
 
     oo = open( 'tab01_%s_%s.texfrag' % (self.tiermax,self.pmax), 'w' )
     mmh = []
-    mhdr = [ '\\rot{80}{%s}' % hmap0.get(m,m) for m in self.mipsp + ['TOTAL',]]
-    mhdrh = [ '<th><div><span>%s</span></div></th>' % hmap0.get(m,m) for m in self.mipsp + ['TOTAL','Unique','CALC']]
+    mhdr = [ '\\rot{80}{%s}' % hmap0.get(m,m) for m in self.mipsp + ['TOTAL','Unique']]
+    mhdrh = [ '<th><div><span>%s</span></div></th>' % hmaph0.get(m,m) for m in self.mipsp + ['TOTAL','Unique','CALC']]
     oo.write( ' & '.join(['',] + mhdr ) + '\\\\ \n\\hline\n' )
     mmh.append( '<table>\n<tr class="rotate">' + ''.join(['<th></th>',] + mhdrh ) + '</tr>\n' )
     htmltmpl_head = '<html><body>\n' 
@@ -209,10 +214,16 @@ class r1(object):
 ## not supported by the "vols" entry option of this class
 ##
     doOo1 = False
+    rows = self.mips + ['TOTAL',]
+    rows.remove( 'ScenarioMIP' )
 
-    for m in self.mips + ['TOTAL',]:
-      ll = [m,]
-      llh = [m,]
+    for m in rows:
+      if m  == 'TOTAL':
+        ll = ['UNION',]
+        llh = ['UNION',]
+      else:
+        ll = [m,]
+        llh = [m,]
       ttl = 0.
       cct = collections.defaultdict( int )
       xt = 0.
@@ -258,11 +269,11 @@ class r1(object):
               if self.msgLevel > 1:
                 print ( 'INFO.overviewTabs.01001: %s, %s' % (m,cct) )
               s1 = '<b><span title="%s">%s</span></b>' % (sm,s)
-              s = '<b>%s</b>' % s
+              ll.append( '<b>%s</b>' % s )
             else:
-               for k in self.cc[kc].a.keys():
+              for k in self.cc[kc].a.keys():
                 cct[k] += self.cc[kc].a[k]
-            ll.append( s )
+              ll.append( s )
             sm = '; '.join( ['%s: %s' % (k,vfmt(self.cc[kc].a[k]*2.)) for k in sorted( self.cc[kc].a.keys() ) ] )
 
             if sss:
@@ -276,7 +287,13 @@ class r1(object):
           except:
             print ( 'Failed to compute element: %s,%s  %s' % (m,m2, str(self.cc[m].a[m2]) ) )
             raise
-      oo.write( ' & '.join(ll ) + '\\\\ \n\\hline\n' )
+      if m == 'VIACSAB':
+        oo.write( ' & \cellcolor{llgray} '.join(ll ) + '\\\\ \n\\hline\n' )
+      else:
+        this = ll[:]
+        this[2] = '\cellcolor{llgray} ' + this[2]
+        oo.write( ' & '.join(this) + '\\\\ \n\\hline\n' )
+
       llh.append( '<a href="data/tabs02/requestVol_%s_%s_%s.xlsx">Workings</a>' % (m,self.tiermax, self.pmax) )
       mmh.append( '<tr>' + ''.join(['<td>%s</td>' % x for x in llh] ) + '</tr>\n' )
     mmh.append( '</table>' )
@@ -294,7 +311,6 @@ class r1(object):
     ooh.write( self.dq.pageTmpl % (ttl, jsh, './', './index.html', bdy ) )
     ooh.close()
     oo.close()
-
 
 if __name__ == "__main__":
   try:

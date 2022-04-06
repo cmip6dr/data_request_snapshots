@@ -2,6 +2,59 @@
 
 import collections
 
+class GenIsUsed(object):
+  def __init__(self,parent,callers=[]):
+    self.c = callers
+    self.pa = parent._inx.iref_by_sect[parent.uid].a
+  def __call__(self):
+    if len(self.c ) == 0:
+       return True
+    for c in self.c:
+      if c in self.pa and len( self.pa[c] ) > 0:
+        return True
+    return False
+    
+def _count(self,sect=None):
+  if sect != None:
+    if sect in self.coll.keys():
+      return len( self.coll[sect].items )
+    else:
+      print ("INVALID SECTION: %s" % ', '.join( sorted( self.coll.keys() ) ) )
+  for k in sorted( self.coll.keys() ):
+     print ("%16s:: %s" % (k,len( self.coll[k].items ) ) )
+
+def _isLinked(self):
+  """Return True if another record links to this record"""
+  if len( self._inx.iref_by_sect[self.uid].a.keys() ) == 0:
+    return False
+  for k in self._inx.iref_by_sect[self.uid].a.keys():
+    if len( self._inx.iref_by_sect[self.uid].a[k] ) > 0:
+      return True
+  return False
+
+def _var__mips(self):
+    """Return set of mip item identifiers for MIPs requesting this var"""
+    mips = set()
+    for i in self._inx.iref_by_sect[self.uid].a['CMORvar']:
+      cmv = self._inx.uid[i]
+      mips = mips.union( cmv._get__mips() )
+    return mips
+
+def _CMORvar__mips(self):
+    """Return set of mip item identifiers for MIPs requesting this CMORvar"""
+    mips = set()
+    for i in self._inx.iref_by_sect[self.uid].a['requestVar']:
+      rqv = self._inx.uid[i]
+      mips = mips.union( rqv._get__mips() )
+    return mips
+
+def _rqv__mips(self):
+    """Return set of mip item identifiers for MIPs requesting this requestVar"""
+    mips = set()
+    for i in self._inx.iref_by_sect[self.vgid].a['requestLink']:
+      rql = self._inx.uid[i]
+      mips.add(rql.mip)
+    return mips
 
 def _expt__CMORvar(self):
     """Return set of CMORvar item identifiers for CMORvars requested for this experiment"""
@@ -23,7 +76,6 @@ def _expt__requestItem(self):
           s.add(x)
     return s
     
-
 def _requestItem__expt(self,tierMax=None,esid=None):
     """Return set of experiment item identifiers for experiments linked directly or indirectly to this requestItem:
           tierMax: maximum experiment tier: if set, only return experiments with tier <= tierMax;
@@ -119,7 +171,7 @@ def _mip__expt(self,tierMax=None,mips=None):
     return s
 
 def _mip__CMORvar(self,mips=None,pmax=None):
-    """Return set of CMORvar item identifiers for CMORvar linked to this mip:
+    """Return set of CMORvar item identifiers for CMORvar requested by this mip:
           pmax: maximum variable priority: if set, only return variables requested with priority <= pmax;
           mips: set of mip uid values: if set, return variables for specified set."""
     assert self._h.label == 'mip', 'collect._mip__CMORvar attached to wrong object: %s [%s]' % (self._h.title,self._h.label)
@@ -259,15 +311,25 @@ def  add(dq):
    dq.coll['requestItem'].items[0].__class__._get__expt = _requestItem__expt
    dq.coll['requestLink'].items[0].__class__._get__expt = _requestLink__expt
    dq.coll['requestLink'].items[0].__class__._get__CMORvar = _requestLink__CMORvar
+   dq.coll['var'].items[0].__class__._get__mips = _var__mips
+   dq.coll['CMORvar'].items[0].__class__._get__mips = _CMORvar__mips
+   dq.coll['requestVar'].items[0].__class__._get__mips = _rqv__mips
    dq.coll['mip'].items[0].__class__._get__CMORvar = _mip__CMORvar
    dq.coll['timeSlice'].items[0].__class__.__compare__ = _timeSlice__compare
+
+   dq.__class__._count = _count
+
    for k in dq.coll.keys():
      if len( dq.coll[k].items ) > 0:
        dq.coll[k].items[0].__class__._sectionList = dq.coll[k].items
        dq.coll[k].items[0].__class__._sectionObj = dq.coll[k]
        dq.coll[k].items[0].__class__._append = _append_to_item_list
+       dq.coll[k].items[0].__class__._isLinked = _isLinked
 
-   for k in ['var','experiment','timeSlice','mip','spatialShape','structure','grids']:
+   for i in dq.coll['cellMethods'].items:
+     i._isUsed = GenIsUsed(i,['structure',])
+
+   for k in ['var','experiment','timeSlice','mip','spatialShape','structure','grids','__sect__']:
      dq.coll[k].items[0].__class__._labelDict = dict()
      for i in dq.coll[k].items:
        dq.coll[k].items[0].__class__._labelDict[i.label] = i

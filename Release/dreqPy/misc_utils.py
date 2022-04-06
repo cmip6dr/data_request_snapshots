@@ -43,15 +43,24 @@ class mdiff(object):
     if len( l1 ) == 0 and len(l1s) == 0:
       return (False, 0)
     cc = collections.defaultdict( set )
+    cc0 = collections.defaultdict( set )
     for k in l1:
       r = difflib.SequenceMatcher(None, s, k ).ratio()
-      cc[r].add( k )
+      cc0[k].add( r )
+      ##cc[r].add( k )
 
     for k in l1s:
+      ##check for lower case matches ... scale by 0.9##
       r = difflib.SequenceMatcher(None, s.lower(), k ).ratio()
       r1 = 0.90*r
       for x in targl[k]:
-        cc[r1].add( x )
+        cc0[x].add( r1 )
+       ## cc[r1].add( x )
+
+## find maximum score for each term
+    for k,v in cc0.items():
+      cc[max(v)].add( k )
+
     ks = sorted( cc.keys() )
     ks.reverse()
     ll = []

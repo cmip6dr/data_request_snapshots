@@ -138,7 +138,10 @@ if sys.version_info[0] == 3:
     from dreqPy.utilP3 import mlog3
   mlg = mlog3()
 else:
-  from utilP2 import util
+  try:
+    from utilP2 import util
+  except:
+    from dreqPy.utilP2 import util
   mlg = util.mlog()
 
 class c1(object):
@@ -250,9 +253,11 @@ class dreqQuery(object):
     self.uniqueRequest = False
 
     ##self.mips = set( [x.label for x in self.dq.coll['mip'].items ] )
-    ##self.mips = ['CMIP','AerChemMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PAMIP', 'PMIP', 'RFMIP', 'ScenarioMIP', 'VolMIP', 'CORDEX', 'DynVar', 'SIMIP', 'VIACSAB']
+    ##self.mips = ['CMIP','AerChemMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PAMIP', 'PMIP', 'RFMIP', 'ScenarioMIP', 'VolMIP', 'CORDEX', 'DynVar', 'DynVarMIP', 'SIMIP', 'VIACSAB']
+
     self.mips = ['CMIP'] + scope_utils.mips
-    self.mipsp = self.mips[:-4]
+    self.mipsp = [x for x in self.mips if x not in scope_utils.mipsdiag]
+
     self.cmvGridId, i4 = fgrid.fgrid( self.dq )
     assert len(i4) == 0
 
@@ -705,7 +710,7 @@ class dreqQuery(object):
 ##
     if not self.retainRedundantRank:
       len1 = len(vars.keys())
-      cmv = self.cmvFilter.filterByChoiceRank(cmv=vars.keys())
+      cmv = self.cmvFilter.filterByChoiceRank(cmv=set(vars.keys()))
       vars = cmv
     
     self.vars = vars
@@ -936,7 +941,10 @@ class dreqQuery(object):
           mlg.prnt ( 'ERROR: %s, %s, %s ' % ( u,i._h.label, i.label, i.title ) )
       dat2 = {}
       for i in e:
-        dat2[i.uid] = (i.ntot, i.yps, i.ensz, i.tier, i.nstart, filter1(i.yps,rqi.nymax), filter2(i.ensz,rqi.nenmax,i.tier,self.tierMax) )
+        ## verified that this change (i.ntot --> None) has zero impact on tab01_3_3.texfrag ... i.e. data volumes are not affected.
+        ## just as well, since values in data request are not correct.
+        ##dat2[i.uid] = (i.ntot, i.yps, i.ensz, i.tier, i.nstart, filter1(i.yps,rqi.nymax), filter2(i.ensz,rqi.nenmax,i.tier,self.tierMax) )
+        dat2[i.uid] = (None, i.yps, i.ensz, i.tier, i.nstart, filter1(i.yps,rqi.nymax), filter2(i.ensz,rqi.nenmax,i.tier,self.tierMax) )
 
       nytot = sum( [dat2[x][-2]*dat2[x][-3] for x in dat2 ] )
       netot = sum( [dat2[x][-1] for x in dat2 ] )
@@ -1104,6 +1112,10 @@ class dreqQuery(object):
           for x in self.dq.inx.iref_by_sect[i.uid].a['requestVar']:
             i1 = self.dq.inx.uid[x]
 
+##
+## BALAJI .... need to override here ... to specified list of CMOR variables ... 
+##     .... or just go through requestVar list and chane every priority ... easieir
+##
             thisp = i1.priority
             if pr != -1:
               thisp = pr
@@ -1893,18 +1905,23 @@ drq -m HighResMIP:Ocean.DiurnalCycle
         eid = self.sc.exptByLabel[ self.adict['e'] ]
         self.sc.exptFilter = set( [eid,] )
       else:
-        ns = 0
-        md =  misc_utils.mdiff()
-        ttm = md.diff( self.adict['e'],self.sc.mipsp )
-        tte = md.diff( self.adict['e'],self.sc.exptByLabel.keys() )
-        if ttm[1] > 0 and tte[1] == 0 or (ttm[2][0][0] > 0.6*tte[2][0][0]):
-          oo =  md.prntprep( self.adict['e'], ttm )
-          for l in oo:
-            mlg.prnt( l )
-        if tte[1] > 0 and ttm[1] == 0 or (tte[2][0][0] > 0.6*ttm[2][0][0]):
-          oo =  md.prntprep( self.adict['e'], tte )
-          for l in oo:
-            mlg.prnt( l )
+        try:
+          ns = 0
+          md =  misc_utils.mdiff()
+          ttm = md.diff( self.adict['e'],self.sc.mipsp )
+          tte = md.diff( self.adict['e'],self.sc.exptByLabel.keys() )
+          if ttm[1] > 0 and (tte[1] == 0 or (ttm[2][0][0] > 0.6*tte[2][0][0])):
+            oo =  md.prntprep( self.adict['e'], ttm )
+            for l in oo:
+              mlg.prnt( l )
+          if tte[1] > 0 and (ttm[1] == 0 or (tte[2][0][0] > 0.6*ttm[2][0][0])):
+            oo =  md.prntprep( self.adict['e'], tte )
+            for l in oo:
+              mlg.prnt( l )
+        except:
+          print ( 'Experiment not found %s' % self.adict['e'] )
+          print ( 'Error encountered trying to find close match' )
+          raise
         assert False, 'Experiment/MIP %s not found' % self.adict['e']
 
     if not self.adict.get( 'esm', False ):
@@ -1967,7 +1984,7 @@ drq -m HighResMIP:Ocean.DiurnalCycle
           vsmode='full'
         else:
           vsmode='short'
-        vs.anal(olab=mlab,doUnique=False, mode=vsmode, makeTabs=makeXls)
+        vs.anal(olab=mlab,doUnique=True, mode=vsmode, makeTabs=makeXls)
         for f in sorted( vs.res['vf'].keys() ):
            mlg.prnt ( 'Frequency: %s: %s' % (f, vs.res['vf'][f]*2.*1.e-12 ) )
         ttl = sum( [x for k,x in vs.res['vu'].items()] )*2.*1.e-12
