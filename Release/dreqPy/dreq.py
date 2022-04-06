@@ -8,10 +8,10 @@ import xml.dom
 import xml.dom.minidom
 import re, shelve, os, sys
 try:
-  from __init__ import DOC_DIR, version, PACKAGE_DIR
+  from __init__ import DOC_DIR, version, PACKAGE_DIR, VERSION_DIR
   import utilities
 except:
-  from dreqPy.__init__ import DOC_DIR, version, PACKAGE_DIR
+  from dreqPy.__init__ import DOC_DIR, version, PACKAGE_DIR, VERSION_DIR
   from dreqPy import utilities
 
 python2 = True
@@ -82,8 +82,6 @@ object._h: a python named tuple describing the section. E.g. object._h.title is 
      dreqItem.ns = ns
      return dreqItem
 
-         
-
 ##
 ## from http://stackoverflow.com/questions/4474754/how-to-keep-comments-while-parsing-xml-using-python-elementtree
 ##
@@ -153,6 +151,7 @@ class dreqItemBase(object):
        _linkAttrStyle = {}
        __charmeEnable__ = {}
        _extraHtml = {}
+       _strictRequired = False
 
        def __init__(self,idict=None,xmlMiniDom=None,id='defaultId',etree=False):
          self._strictRead = True
@@ -168,7 +167,11 @@ class dreqItemBase(object):
          if dictMode:
            self.dictInit( idict )
          elif mdMode:
-           self.mdInit( xmlMiniDom, etree=etree )
+           try:
+             self.mdInit( xmlMiniDom, etree=etree )
+           except:
+             print ('Exception raise initialising data request item')
+             raise
 
        def hasattr(self,tag):
          """Return True id the argument passed is the name of an attribute of this instance."""
@@ -381,6 +384,8 @@ class dreqItemBase(object):
                tvtl.append( (a,True,None) )
              else:
                tvtl.append( (a,False,None) )
+               if self._strictRequired:
+                 assert False, 'Required attribute absent: %s:: %s' % (a,str(el.__dict__))
          else:
            for a in self._a.keys():
              if el.hasAttribute( a ):
@@ -478,7 +483,7 @@ class dreqItemBase(object):
 class config(object):
   """Read in a vocabulary collection configuration document and a vocabulary document"""
 
-  def __init__(self, configdoc='out/dreqDefn.xml', thisdoc='../workbook/trial_20150724.xml', manifest=None, useShelve=False, strings=False,configOnly=False):
+  def __init__(self, configdoc='out/dreqDefn.xml', thisdoc='../workbook/trial_20150724.xml', manifest=None, useShelve=False, strings=False,configOnly=False,lxml=False):
     self.rc = rechecks()
     self.lu = lutilsC()
     self.silent = True
@@ -500,6 +505,7 @@ class config(object):
     self.ttl2 = []
     self.docs = {}
     self.version = None
+    self.useLxml = lxml
 
     if manifest != None:
       assert os.path.isfile( manifest ), 'Manifest file not found: %s' % manifest
@@ -547,17 +553,29 @@ class config(object):
     self.ns = None
     if not self.configOnly:
       if self.etree:
-        import xml.etree.cElementTree as cel
+        if self.useLxml:
+          import lxml
+          import lxml.etree as et
+        else:
+          import xml.etree.cElementTree as cel
       
         if not pythonPre27:
           ## this for of namespace registration not available in 2.6
           ## absence of registration means module cannot write data exactly as read.
           ##
-          cel.register_namespace('', "urn:w3id.org:cmip6.dreq.dreq:a")
-          cel.register_namespace('pav', "http://purl.org/pav/2.3")
+          if self.useLxml:
+            ##et.register_namespace('', "urn:w3id.org:cmip6.dreq.dreq:a")
+            et.register_namespace('pav', "http://purl.org/pav/2.3")
+          else:
+            cel.register_namespace('', "urn:w3id.org:cmip6.dreq.dreq:a")
+            cel.register_namespace('pav', "http://purl.org/pav/2.3")
 
         if not self.strings:
-          if python2:
+          if self.useLxml:
+            ##parser = etree.XMLParser( remove_blank_text=True )
+            ##self.contentDoc = et.parse( self.vsamp, parser  )
+            self.contentDoc = et.parse( self.vsamp  )
+          elif python2:
             parser = getParser()()
             self.contentDoc = cel.parse( self.vsamp, parser=parser )
           else:
@@ -680,7 +698,12 @@ class config(object):
           self.tables[k] = (i,t,len(il))
         
           for i in il:
-            ii = self.tableClasses[k](xmlMiniDom=i, etree=True)
+            try:
+              ii = self.tableClasses[k](xmlMiniDom=i, etree=True)
+            except:
+              print ('Exception raises instantiating item in section %s' % k)
+              print ('At item uid=%s' % str(i) )
+              raise
             self.tableItems[k].append( ii )
         elif len(vl) > 1:
           assert False, 'not able to handle repeat sections with etree yet'
@@ -914,15 +937,24 @@ class loadDreq(object):
   configdoc: full path to associated configuration document
   useShelve: flag to specify whether to retrieve data from cache (not implemented)
   htmlStyles: dictionary of styling directives which influence structure of html page generates by the "makeHtml" method
+  lxml [False]: if true, use python lxml package for elementree module instead of the default xml package.
 """
 
-  def __init__(self,dreqXML=None, configdoc=None, useShelve=False, htmlStyles=None, strings=False, manifest=defaultManifestPath , configOnly=False):
-    if manifest == None:
+  def __init__(self, xmlVersion=None, dreqXML=None, configdoc=None, useShelve=False, htmlStyles=None, strings=False, manifest=defaultManifestPath , configOnly=False,lxml=False):
+    self._extensions_ = {}
+    if xmlVersion != None:
+      assert os.path.isdir( VERSION_DIR ),'Version diretory %s not found;\nCreate or change environment variable DRQ_VERSION_DIR' % VERSION_DIR 
+      assert os.path.isdir( '%s/%s' % (VERSION_DIR,xmlVersion) ), 'Version %s not in %s .. download from ..' % (xmlVersion,VERSION_DIR)
+      dreqXML='%s/%s/dreq.xml' % (VERSION_DIR,xmlVersion)
+      configdoc='%s/%s/dreq2Defn.xml' % (VERSION_DIR,xmlVersion)
+      manifest = None
+    elif manifest == None:
       if dreqXML == None:
        dreqXML=defaultDreqPath
       if configdoc==None:
        configdoc=defaultConfigPath
-    self.c = config( thisdoc=dreqXML, configdoc=configdoc, useShelve=useShelve,strings=strings,manifest=manifest,configOnly=configOnly)
+    self._VERSION_DIR_ = VERSION_DIR
+    self.c = config( thisdoc=dreqXML, configdoc=configdoc, useShelve=useShelve,strings=strings,manifest=manifest,configOnly=configOnly,lxml=lxml)
     self.coll = self.c.coll
     self.version = self.c.version
     self.softwareVersion = version

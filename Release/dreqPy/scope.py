@@ -1627,6 +1627,7 @@ class dreqUI(object):
                  default: 259200,60,64800,40,20,5,100
       --txtOpts : options for content of text file: (v|c)[(+|-)att1[,att2[...]]]
       --xlsDir <directory> : Directory in which to place variable listing [xls];
+      --xmlVersion <version> : version number of XML document [only with extension enabled -- not stable];
       --printLinesMax <n>  : Maximum number of lines to be printed (default 20)
       --printVars    : If present, a summary of the variables (see --printLinesMax) fitting the selection options will be printed
       --intersection : Analyse the intersection of requests rather than union.
@@ -1661,6 +1662,7 @@ drq -m HighResMIP:Ocean.DiurnalCycle
                       '--unique':('unique',False), \
                       '--mcfg':('mcfg',True), \
                       '--txtOpts':('txtOpts',True), \
+                      '--xmlVersion':('xmlVersion',True), \
                       '--xlsDir':('xlsdir',True), '--xls':('xls',False) \
                        } 
     aa = args[:]
@@ -1733,9 +1735,10 @@ drq -m HighResMIP:Ocean.DiurnalCycle
       mlg.prnt ( self.__doc__ )
       return
 
+    xmlVersion = self.adict.get( 'xmlVersion', None )
     if 'q' in self.adict:
       if dq == None:
-        dq = dreq.loadDreq(configOnly=True)
+        dq = dreq.loadDreq(configOnly=True, xmlVersion=xmlVersion)
       s = self.adict['q']
       if self.adict['q'] == 's':
         ss = sorted( [(i.title,i.label) for i in dq.coll['__sect__'].items] )
@@ -1772,7 +1775,7 @@ drq -m HighResMIP:Ocean.DiurnalCycle
       sys.exit(0)
 
     if dq == None:
-      self.dq = dreq.loadDreq()
+      self.dq = dreq.loadDreq(xmlVersion=xmlVersion)
     else:
       self.dq = dq
 

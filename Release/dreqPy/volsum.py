@@ -2,6 +2,7 @@ import xlsxwriter
 from xlsxwriter.utility import xl_rowcol_to_cell
 import collections, os
 
+
 try:
   import dreq
   imm=1
@@ -13,10 +14,18 @@ if imm == 1:
   import misc_utils
   import table_utils
   import overviewTabs
+  from extensions import collect as extCollect
+##
+## the double underscore causes some confusion, creating an error message _vsum__requestLink__expt not found.
+  from extensions.collect import _requestLink__expt as requestLink__expt
 else:
   import dreqPy.misc_utils as misc_utils
   import dreqPy.table_utils as table_utils
   import dreqPy.overviewTabs as overviewTabs
+  from dreqPy.extensions import collect as extCollect
+  from dreqPy.extensions.collect import _requestLink__expt as requestLink__expt
+
+
 
 class xlsx(object):
   def __init__(self,fn,txtOpts=None):
@@ -52,7 +61,14 @@ class vsum(object):
   def __init__(self,sc,odsz,npy,exptFilter=None, odir='xls', tabByFreqRealm=False):
     self.tabByFreqRealm = tabByFreqRealm
     idir = dreq.DOC_DIR
+    if 'collect' not in sc.dq._extensions_:
+      extCollect.add(sc.dq)
     self.sc = sc
+    self.exptMipRql = collections.defaultdict( set )
+    for i in self.sc.dq.coll['requestLink'].items:
+      expts = requestLink__expt(i,rql=[i.uid,])
+      for e in expts:
+        self.exptMipRql[ (i.mip,self.sc.dq.inx.uid[e].label) ].add( i.uid)
     self.odsz=odsz
     self.npy = npy
     self.exptFilter = exptFilter
@@ -184,6 +200,7 @@ class vsum(object):
     if mode == 'short':
       self.res = { 'vet':vet,  'lex':lex, 'vu':vu, 'vf':vf}
       return
+
     if olab != 'TOTAL' and doUnique:
       s_lex, s_vet, s_vf, s_vu, s_mvol = self._analSelectedCmv(self.uniqueCmv )
       s_lm = set( self.uniqueCmv.keys() )
@@ -247,13 +264,27 @@ class vsum(object):
     for e in sorted( ve.keys() ):
       if olab != None and makeTabs:
         el = self.sc.dq.inx.uid[e].label
+
+        if olab in ['Total','TOTAL']:
+          pdict = None
+        elif (olab,el) in self.exptMipRql:
+          pdict = collections.defaultdict( set )
+          for rqlid in self.exptMipRql[(olab,el)]:
+             rql = self.sc.dq.inx.uid[rqlid]
+             for rqvid in self.sc.dq.inx.iref_by_sect[rql.refid].a['requestVar']:
+               rqv = self.sc.dq.inx.uid[rqvid]
+               pdict[rqv.vid].add( rqv.priority )
+        else:
+          print 'INFO.00201: olab,e not found:',olab,el
+          pdict = None
+
         tslice = {}
         for v in self.sc.cmvts:
           if e in self.sc.cmvts[v]:
             tslice[v] = self.sc.cmvts[v][e]
         dest = self.xlsDest('e',olab,el)
-        table_utils.makeTab(self.sc, subset=lex[e], dest=self.xlsDest('e',olab,el), collected=cc[e],byFreqRealm=self.tabByFreqRealm, tslice=tslice, exptUid=e)
-        ##self.makeTab(self.sc.dq, subset=lex[e], dest=self.xlsDest('e',olab,el), collected=cc[e],byFreqRealm=self.tabByFreqRealm)
+        mode ='e'
+        table_utils.makeTab(self.sc, subset=lex[e], dest=self.xlsDest(mode,olab,el), collected=cc[e],byFreqRealm=self.tabByFreqRealm, tslice=tslice, exptUid=e, tabMode=mode, pdict=pdict)
 
     if olab != 'TOTAL' and doUnique:
       for e,t in s_vet:

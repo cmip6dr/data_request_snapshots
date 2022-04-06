@@ -22,10 +22,11 @@ def main_entry():
 
   if sys.argv[1] == '-v':
       if scr:
-        from packageConfig import __version__, __versionComment__
+        from packageConfig import __version__, __versionComment__, PACKAGE_DIR
       else:
-        from .packageConfig import __version__, __versionComment__
+        from .packageConfig import __version__, __versionComment__, PACKAGE_DIR
       print( 'dreqPy version %s [%s]' % (__version__,__versionComment__) )
+      print( 'Installed in %s' % PACKAGE_DIR )
       print( 'Running in python %s' % str( sys.version_info ) )
   elif sys.argv[1] == '--unitTest':
       print( "Starting test suite 1" )

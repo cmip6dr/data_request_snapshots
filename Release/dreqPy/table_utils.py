@@ -179,14 +179,17 @@ class xlsx(object):
           self.oo.write( hrec[i] + '\t' )
         self.oo.write( '\n' )
 
-  def cmvtab(self,t,addMips,mode='c',tslice=False,byFreqRealm=False):
+  def cmvtab(self,t,addMips,mode='c',tslice=False,byFreqRealm=False,truePriority=False):
       if self.xls:
         self.sht = self.newSheet( t )
       j = 0
       ncga = 'NetCDF Global Attribute'
       if mode == 'c':
-        hrec = ['Priority','Long name', 'units', 'description', 'comment', 'Variable Name', 'CF Standard Name', 'cell_methods', 'positive', 'type', 'dimensions', 'CMOR Name', 'modeling_realm', 'frequency', 'cell_measures', 'prov', 'provNote','rowIndex','UID','vid','stid','Structure Title','valid_min', 'valid_max', 'ok_min_mean_abs', 'ok_max_mean_abs']
+        hrec = ['Default Priority','Long name', 'units', 'description', 'comment', 'Variable Name', 'CF Standard Name', 'cell_methods', 'positive', 'type', 'dimensions', 'CMOR Name', 'modeling_realm', 'frequency', 'cell_measures', 'prov', 'provNote','rowIndex','UID','vid','stid','Structure Title','valid_min', 'valid_max', 'ok_min_mean_abs', 'ok_max_mean_abs']
         hcmt = ['Default priority (generally overridden by settings in "requestVar" record)',ncga,'','','Name of variable in file','','','CMOR directive','','','CMOR name, unique within table','','','','','','','','','','CMOR variable identifier','MIP variable identifier','Structure identifier','','','','','']
+        if truePriority:
+           hrec[0] = 'Priority'
+           hcmt[0] = 'Lowest priority value set in request for this variable for this experiment'
         if self.xls:
           self.sht.set_column(1,1,40)
           self.sht.set_column(1,3,50)
@@ -247,7 +250,7 @@ class xlsx(object):
 ### need to have name of experiment here, for the aggregation over MIPs to work ... in the column of request by MIPs
 ###
 class makeTab(object):
-  def __init__(self, sc, subset=None, mcfgNote=None, dest='tables/test', skipped=set(), collected=None,xls=True,txt=False,txtOpts=None,byFreqRealm=False, tslice=None, exptUid=None):
+  def __init__(self, sc, subset=None, mcfgNote=None, dest='tables/test', skipped=set(), collected=None,xls=True,txt=False,txtOpts=None,byFreqRealm=False, tslice=None, exptUid=None, tabMode=None, pdict=None):
     """txtOpts: gives option to list MIP variables instead of CMOR variables"""
     self.sc = sc
     dq = sc.dq
@@ -283,6 +286,7 @@ class makeTab(object):
     if mcfgNote != None:
       wb.mcfgNote = mcfgNote
     wb.header( tableNotes, collected)
+    truePriority = tabMode == 'e' and pdict != None
 
     if txtOpts != None and txtOpts.mode == 'var':
       vl =  list( set( [v.vid for v in cmv] )  )
@@ -304,7 +308,7 @@ class makeTab(object):
       for t in tables:
         if withoo:
           oo = open( 'tables/test_%s.csv' % t, 'w' )
-        wb.cmvtab(t,addMips,mode='c',tslice=tslice != None,byFreqRealm=byFreqRealm)
+        wb.cmvtab(t,addMips,mode='c',tslice=tslice != None,byFreqRealm=byFreqRealm,truePriority = truePriority)
 
         j = 0
         if oldpython:
@@ -357,7 +361,15 @@ class makeTab(object):
                
             if mode == 'c':
               try:
-                orec = [str(cmv.defaultPriority),var.title, var.units, var.description, cmv.description, var.label, var.sn, strc.cell_methods, cmv.positive, cmv.type, dims, cmv.label, cmv.modeling_realm, cmv.frequency, strc.cell_measures, cmv.prov,cmv.provNote,str(cmv.rowIndex),cmv.uid,cmv.vid,cmv.stid,strc.title, valid_min, valid_max, ok_min_mean_abs, ok_max_mean_abs]
+                if tabMode == 'e' and pdict != None:
+                  if cmv.uid in pdict:
+                    thisp = str( min( pdict[cmv.uid] ) )
+                  else:
+                    thisp = str(cmv.defaultPriority)
+                    print 'ERROR.priority.0101: ',cmv.label,dest
+                else:
+                  thisp = str(cmv.defaultPriority)
+                orec = [thisp,var.title, var.units, var.description, cmv.description, var.label, var.sn, strc.cell_methods, cmv.positive, cmv.type, dims, cmv.label, cmv.modeling_realm, cmv.frequency, strc.cell_measures, cmv.prov,cmv.provNote,str(cmv.rowIndex),cmv.uid,cmv.vid,cmv.stid,strc.title, valid_min, valid_max, ok_min_mean_abs, ok_max_mean_abs]
               except:
                 print ('FAILED TO CONSTRUCT RECORD: %s [%s], %s [%s]' % (cmv.uid,cmv.label,var.uid,var.label) )
                 raise
@@ -406,7 +418,7 @@ class makeTab(object):
                   thisp = priority
                   priority = thisp[1]
                   ##print 'ERROR in priority type[2]: ',priority, tslice[cmv.uid]
-                orec[0] = priority
+                orec[0] = '%s' % priority
                      
                 if tsmode[:4] in ['simp','bran']:
                    nys = b + 1 - a
@@ -424,6 +436,8 @@ class makeTab(object):
                    orec += ['slice', tslab,'']
                 orec.append( grid )
                 
+            if orec[0] in [0,'0',None]:
+                  print 'ERROR.priority.006: ',orec,dest
             if withoo:
               oo.write( '\t'.join(orec ) + '\n' )
             j+=1
