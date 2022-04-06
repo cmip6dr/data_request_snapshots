@@ -18,7 +18,7 @@
 <xs:simpleType name="st__attLabel_def"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z0-9-])+"/></xs:restriction></xs:simpleType>
 <xs:simpleType name="st__attLabel_und"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z0-9_])+"/></xs:restriction></xs:simpleType>
 <xs:simpleType name="st__attLabel_int"><xs:restriction base="xs:integer"/></xs:simpleType>
-<xs:simpleType name="st__attLabel_an"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z0-9])+"/></xs:restriction></xs:simpleType>
+<xs:simpleType name="st__attLabel_an"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z])([a-zA-Z0-9])+"/></xs:restriction></xs:simpleType>
 <xs:simpleType name="st__stringList"><xs:restriction base="aa:base__stringList"><xs:minLength value="0"/></xs:restriction></xs:simpleType><xs:simpleType name="base__stringList"><xs:list itemType="xs:string"/></xs:simpleType>
 <xs:simpleType name="st__integerList"><xs:restriction base="aa:base__integerList"><xs:minLength value="0"/></xs:restriction></xs:simpleType><xs:simpleType name="base__integerList"><xs:list itemType="xs:integer"/></xs:simpleType>
 <xs:simpleType name="st__integerListMonInc"><xs:restriction base="aa:st__integerList"/></xs:simpleType>

@@ -16,7 +16,7 @@ HOME = os.environ.get('HOME', PACKAGE_DIR)
 VERSION_DEFAULT_DIR = os.path.join(HOME, '.dreqPy')
 VERSION_DIR = os.environ.get('DRQ_VERSION_DIR', VERSION_DEFAULT_DIR)
 
-__version__ = "01.00.32"
+__version__ = "01.00.33"
 __versionComment__ = "Version %s" % __version__
 __title__ = "dreqPy"
 __description__ = "CMIP6 Data Request Python API"
