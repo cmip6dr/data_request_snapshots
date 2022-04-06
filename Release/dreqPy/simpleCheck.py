@@ -55,7 +55,9 @@ class checkbase(object):
   def __init__(self,lab):
     self.lab = lab
     self.ok = True
+    self.entryPath = sys.argv[0]
     self.entryPoint = sys.argv[0].split( '/' )[-1]
+    self.entryDir = self.entryPath.replace( self.entryPoint, '' )
     ##if os.path.isdir( 'out' ):
       ##self.docdir = 'out'
     ##elif os.path.isdir( 'docs' ):
@@ -147,13 +149,13 @@ class check2(checkbase):
     os.unlink( '.simpleCheck_check2.txt' )
 
   def _getCmd(self):
-    if self.entryPoint == 'drq':
-       self.cmd = 'drq'
+    if self.entryPoint in ['drq', 'drqTest']:
+       self.cmd = self.entryPoint
     else:
        if usingPython3:
-         self.cmd = 'python3 dreqCmdl.py'
+         self.cmd = 'python3 %sdreqCmdl.py' % self.entryDir
        else:
-         self.cmd = 'python dreqCmdl.py'
+         self.cmd = 'python2.7 %sdreqCmdl.py' % self.entryDir
 
   def _ch05_checkMcfg(self):
     self._getCmd()
@@ -162,7 +164,7 @@ class check2(checkbase):
 
     ii = open( '.simpleCheck_check5_err.txt' ).readlines()
     if len(ii) > 0:
-      print ( 'WARNING[005]: failed to get volume est. with command line call' )
+      print ( 'WARNING[005]: failed to get volume est. with command line call: %s' % self.cmd )
       self.ok = False
       ##self._clear_ch04()
       return

@@ -254,10 +254,8 @@ class dreqQuery(object):
 
     ##self.mips = set( [x.label for x in self.dq.coll['mip'].items ] )
     ##self.mips = ['CMIP','AerChemMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PAMIP', 'PMIP', 'RFMIP', 'ScenarioMIP', 'VolMIP', 'CORDEX', 'DynVar', 'DynVarMIP', 'SIMIP', 'VIACSAB']
-
     self.mips = ['CMIP'] + scope_utils.mips
-    self.mipsp = [x for x in self.mips if x not in scope_utils.mipsdiag]
-
+    self.mipsp = ['CMIP'] + scope_utils.mipsp
     self.cmvGridId, i4 = fgrid.fgrid( self.dq )
     assert len(i4) == 0
 
@@ -1622,7 +1620,7 @@ class dreqUI(object):
               <section:attribute>: definition of an attribute.
       -h :       help: print help text;
       -e <expt>: experiment;
-      -t <tier> maxmum tier;
+      -t <tier> maximum tier;
       -p <priority>  maximum priority;
       --xls : Create Excel file with requested variables;
       --sf : Print summary of variable count by structure and frequency [default];
@@ -1836,6 +1834,7 @@ drq -m HighResMIP:Ocean.DiurnalCycle
     if 'mcfg' in self.adict:
       self.sc.setMcfg( lli )
 
+    self.tierByDefault = 't' not in self.adict
     tierMax = self.adict.get( 't', 1 )
     self.sc.setTierMax(  tierMax )
     pmax = self.adict.get( 'p', 1 )
@@ -1901,9 +1900,11 @@ drq -m HighResMIP:Ocean.DiurnalCycle
       if ex in self.sc.mipsp:
         eid = set( self.dq.inx.iref_by_sect[ex].a['experiment'] )
         self.sc.exptFilter = eid
+        self.exptMode = 'mip'
       elif self.adict['e'] in self.sc.exptByLabel:
         eid = self.sc.exptByLabel[ self.adict['e'] ]
         self.sc.exptFilter = set( [eid,] )
+        self.exptMode = 'expt'
       else:
         try:
           ns = 0
@@ -1936,6 +1937,11 @@ drq -m HighResMIP:Ocean.DiurnalCycle
           print ( """WARNING: filter settings give no experiments: try using --esm flag: by default esm experiments are filtered out""" )
           return
 
+    if self.exptMode == 'expt' and self.tierByDefault:
+      tier = min(self.dq.inx.uid[eid].tier)
+      if tier > tierMax:
+         print ( """WARNING: default is to filter experiment tier > %s, default tier for %s is %s""" % (tierMax, self.dq.inx.uid[eid].label, tier) )
+         print ( """Resubmit with '-t %s' to avoid this""" % tier )
 
     makeTxt = self.adict.get( 'txt', False )
     makeXls = self.adict.get( 'xls', False )
@@ -1984,7 +1990,7 @@ drq -m HighResMIP:Ocean.DiurnalCycle
           vsmode='full'
         else:
           vsmode='short'
-        vs.anal(olab=mlab,doUnique=True, mode=vsmode, makeTabs=makeXls)
+        vs.anal(olab=mlab,doUnique=False, mode=vsmode, makeTabs=makeXls)
         for f in sorted( vs.res['vf'].keys() ):
            mlg.prnt ( 'Frequency: %s: %s' % (f, vs.res['vf'][f]*2.*1.e-12 ) )
         ttl = sum( [x for k,x in vs.res['vu'].items()] )*2.*1.e-12

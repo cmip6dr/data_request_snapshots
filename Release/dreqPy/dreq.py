@@ -384,15 +384,23 @@ class dreqItemBase(object):
 
        def mdInit( self, el, etree=False ):
          __doc__ = """Initialisation from a mindom XML element. The list of attributes must be set by the class factory before the class is initialised"""
-         deferredHandling=False
-         nw1 = 0
          tvtl = []
          if etree:
            ks = set( el.keys() )
            for a in self._a.keys():
              if a in ks:
                aa = '%s%s' % (self.ns,a)
-               tvtl.append( (a,True, str( el.get( a ) ) ) )
+#
+# exception trapping to provide more diagnostics when a character code issue arises
+# added in 01.00.32beta
+#
+               this = el.get( a )
+               try:
+                 tvtl.append( (a,True, str( this ) ) )
+               except:
+                 print( 'ERROR: FAILED to str %s: %s' % (a,this) )
+                 tvtl.append( (a,True, this.encode( 'utf-8' ) ) )
+
              elif self._a[a].__dict__.get( 'required', True ) in [False,'false',u'false']:
                tvtl.append( (a,True,None) )
              else:
@@ -408,18 +416,82 @@ class dreqItemBase(object):
 ##
              elif self._a[a].__dict__.get( 'required', True ) not in [False,'false',u'false']:
                tvtl.append( (a,False,None) )
-       
+      
+         self._tvtlInit( tvtl )
+         self._contentInitialised = True
+
+       def _tvtlInit( self, tvtl ):
+         """Coercing string values into a python objects appropriate to declared types: looping over tuples containing tags and values.
+            the code sets the default if appropriate, otherwise call _avInit to coerce the string value to an appropriate python object."""
+
+         nw1 = 0
          for a,tv,v in tvtl:
            if a == 'uid':
              uid = v
 
          for a,tv,v in tvtl:
            if tv:
-             erase = False
              if v == None:
-               pass
-               erase = True
-             elif self._a[a].type == u'xs:float':
+               self.__dict__[a] = '__tmp__'
+               delattr( self, a )
+               ### need to overwrite attribute (which is inherited from parent class) before deleting it.
+               ### this may not be needed in python3
+             else:
+               self._avInit( a, v )
+           else:
+             if a in ['uid',]:
+               thissect = '%s' % (self._h.title)
+               print ( 'ERROR.020.0001: missing uid: %s: a,tv,v: %s, %s, %s\n %s' % (thissect,a,tv,v,str( self.__dict__ )) )
+               ##if etree:
+                 ##p = self.parent_map( el )
+                 ##print ( ks )
+               raise
+                 ##import sys
+                 ##sys.exit(0)
+             self.__dict__[a] = self._d.defaults.get( a, self._d.glob )
+
+
+       def _avInit( self, a, v ):
+             """Coercing a string value into a python object appropriate to the declared type: non-numeric data types:
+                 a: the tag identifying the data element;
+                 v: the string serialisation of the data value:
+
+                 Approach
+                 --------
+                 (1) Check whether type is numric -- if true call _avInitNumeric;
+                 (2) Otherwise, deal with boolean or string list types, or default which is to take string value as is."""
+
+             numericTypes = [u'xs:float',u'aa:st__floatList', u'aa:st__floatListMonInc',u'aa:st__integerList', u'aa:st__integerListMonInc',u'xs:integer']
+
+             if self._a[a].type in numericTypes:
+               return self._avInitNumeric( a,v )
+             elif self._a[a].type == u'xs:boolean':
+               v = v in ['true','1']
+             elif self._a[a].type == u'aa:st__stringList':
+               if v.find(' ') != -1:
+                 v = tuple( v.split() )
+               else:
+                 v = (v,)
+
+             elif self._a[a].type not in [u'xs:string', u'aa:st__uid', 'aa:st__fortranType', 'aa:st__configurationType','aa:st__sliceType']:
+               print ('ERROR: Type %s not recognised [%s:%s]' % (self._a[a].type,self._h.label,a) )
+             
+             self.__dict__[a] = v
+
+       def _avInitNumeric( self, a, v ):
+             """Coercing a value into a python object appropriate to the declared type: numeric data types.
+                 a: the tag identifying the data element;
+                 v: the string serialisation of the data value:
+                 
+                 list types are split into elements;
+                 integers coerced with the python int function;
+                 floats coerced with the python float function;
+                 -- if integer coercion fails, indirect coercion is attempted via int (float (v) )
+                 -- if specified in the type, monotonicity is checked.
+                 -- if type is integer, a blank is taken as zero.
+             """
+             msg = ''
+             if self._a[a].type == u'xs:float':
                if v == '':
                  v = None
                else:
@@ -457,41 +529,10 @@ class dreqItemBase(object):
                      print ( 'WARN: input integer non-compliant: %s: %s: %s [%s] %s' % (thissect,a,v0,v,uid) )
                    except:
                      msg = 'ERROR: failed to convert integer: %s: %s: %s, %s' % (thissect,a,v,type(v))
-                     deferredHandling=True
-             elif self._a[a].type == u'xs:boolean':
-               v = v in ['true','1']
-             elif self._a[a].type == u'aa:st__stringList':
-               if v.find(' ') != -1:
-                 v = tuple( v.split() )
-               else:
-                 v = (v,)
-             elif self._a[a].type not in [u'xs:string', u'aa:st__uid', 'aa:st__fortranType', 'aa:st__configurationType','aa:st__sliceType']:
-               print ('ERROR: Type %s not recognised [%s:%s]' % (self._a[a].type,self._h.label,a) )
-
-             if erase:
-               ### need to overwrite attribute (which is inherited from parent class) before deleting it.
-               ### this may not be needed in python3
-               self.__dict__[a] = '__tmp__'
-               delattr( self, a )
+                     print ( msg )
              else:
-               self.__dict__[a] = v
-           else:
-             if a in ['uid',]:
-               thissect = '%s' % (self._h.title)
-               print ( 'ERROR.020.0001: missing uid: %s: a,tv,v: %s, %s, %s\n %s' % (thissect,a,tv,v,str( self.__dict__ )) )
-               if etree:
-                 ##p = self.parent_map( el )
-                 print ( ks )
-                 raise
-                 import sys
-                 sys.exit(0)
-             self.__dict__[a] = self._d.defaults.get( a, self._d.glob )
-
-           if deferredHandling:
-             print ( msg )
-
-         self._contentInitialised = True
-
+               raise
+             self.__dict__[a] = v
     
 class config(object):
   """Read in a vocabulary collection configuration document and a vocabulary document"""
@@ -565,6 +606,7 @@ class config(object):
 ##
     self.etree = False
     self.etree = True
+    root=None
     self.ns = None
     if not self.configOnly:
       if self.etree:
@@ -660,10 +702,18 @@ class config(object):
 ##
     self.coll['__core__'] = self.ntf( self._t0.header, self._t0.attributes, [self.tt0[k] for k in self.tt0] )
 
+    self._read_vl(vl,tables)
+
+    for k in tables:
+      self.recordAttributeDefn[k] = tables[k]
+
+    if not self.configOnly:
+      self.__read_tables__(root,tables)
+
+  def _read_vl(self,vl,tables):
     ec = {}
     for i in self.coll['__core__'].items:
       ec[i.label] = i
-
 
     for v in vl:
       t = self.parsevcfg(v)
@@ -688,11 +738,7 @@ class config(object):
         assert k in ec, 'Key %s [%s] not found' % (k,sct)
         self.coll[sct].attDefn[k] = ec[k]
 
-    for k in tables:
-      self.recordAttributeDefn[k] = tables[k]
-
-    if self.configOnly:
-      return
+  def __read_tables__(self,root,tables):
     for k in tables.keys():
       if self.etree:
         vl = root.findall( './/%s%s' % (self.ns,k) )

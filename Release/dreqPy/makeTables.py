@@ -379,7 +379,7 @@ def run():
   assert os.path.isdir( 'html/index' ), 'Before running this script you need to create "html", "html/index" and "html/u" sub-directories, or edit the call to dq.makeHtml, and refernces to "u" in style lines below'
   assert os.path.isdir( 'tables' ), 'Before running this script you need to create a "tables" sub-directory, or edit the table_utils.makeTab class'
 
-  dq = dreq.loadDreq( htmlStyles=htmlStyle, manifest='docs/dreqManifest.txt' )
+  dq = dreq.loadDreq( htmlStyles=htmlStyle, manifest='out/dreqManifest.txt' )
 ##
 ## add special styles to dq object "itemStyle" dictionary.
 ##

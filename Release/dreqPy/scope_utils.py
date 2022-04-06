@@ -7,7 +7,8 @@ except:
 ##NT_txtopts = collections.namedtuple( 'txtopts', ['mode'] )
 
 mips = ['ScenarioMIP', 'VIACSAB', 'AerChemMIP', 'CDRMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PAMIP', 'PMIP', 'RFMIP', 'VolMIP', 'CORDEX', 'DynVarMIP',  'SIMIP' ]
-mipsdiag = ['VolMIP', 'CORDEX', 'DynVarMIP',  'SIMIP' ]
+
+mipsp = [x for x in mips if x not in ['VIACSAB','CORDEX', 'DynVarMIP',  'SIMIP' ] ]
 
 class c1(object):
   def __init__(self):
@@ -26,7 +27,7 @@ class xlsTabs(object):
     self.doTxt = txt
 
     self.mips = mips
-    self.mipsp = ['DECK','CMIP6',] + [x for x in mips if x not in mipsdiag]
+    self.mipsp = ['DECK','CMIP6',] + self.mips[:-4]
 
     self.tabs = table_utils.tables( sc, xls=xls, txt=txt, txtOpts=txtOpts, odir=odir )
 

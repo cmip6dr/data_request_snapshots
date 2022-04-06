@@ -53,8 +53,8 @@ class r1(object):
     assert vols == None or type(vols) == type( () ), 'vols argument must be none or tuple of length 2: %s' % type(vols)
     self.dq = sc.dq
     self.mips = ['CMIP'] + scope_utils.mips
-    self.mipsp = [x for x in self.mips if x not in scope_utils.mipsdiag]
-
+    self.mipsp = self.mips[:-3]
+    self.mipsp.remove( 'VIACSAB' ) 
     self.sc = sc
     self.pmax=pmax
     self.efnsfx = ''

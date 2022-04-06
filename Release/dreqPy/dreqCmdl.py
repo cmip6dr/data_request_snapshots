@@ -34,12 +34,20 @@ def main_entry():
         import simpleCheck
       else:
         from . import simpleCheck
+      if '--strict' in sys.argv:
+        assert simpleCheck.all, 'Errors detected in simpleCheck'
       print( "Starting test suite 2" )
       if scr:
         import examples.ex203 as ex203
       else:
         from .examples import ex203
       ex203.main( scope )
+      print( "Starting test suite 3" )
+      if scr:
+        import utilP2.info as info
+      else:
+        from .utilP2 import info
+      print( info.__doc__ )
       print( "Tests completed" )
   elif sys.argv[1] == '--makeTables':
       print( "Making web page tables" )

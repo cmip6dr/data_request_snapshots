@@ -127,7 +127,7 @@ which  case  a  primary  realm  is  assigned as the first listed and other relev
   <rowAttribute label="label" type="xs:string" title="Record Label" useClass="" techNote="" description="" uid="ATTRIBUTE::tableSection.label" superclass="" required="true"/>
   <rowAttribute label="title" type="xs:string" title="Record Title" useClass="" techNote="" description="" uid="ATTRIBUTE::tableSection.title" superclass="" required="true"/>
   <rowAttribute label="uid" type="aa:st__uid" title="Record Identifier" useClass="recordId" techNote="" description="" uid="ATTRIBUTE::tableSection.uid" superclass="" required="true"/>
-  <rowAttribute label="gpid" type="xs:string" title="Identifier for CMOR Tables" useClass="internalLink" techNote="requestVarGroup" description="Link to a record defining a CMOR table." uid="ATTRIBUTE::tableSection.gpid" superclass="" required="true"/>
+  <rowAttribute label="gpid" type="xs:string" title="Identifier for CMOR Tables" useClass="internalLink" techNote="mipTable" description="Link to a record defining a CMOR table." uid="ATTRIBUTE::tableSection.gpid" superclass="" required="true"/>
   <rowAttribute label="mip" type="xs:string" title="Project" useClass="" techNote="" description="Redundant. Specification of a MIP." uid="ATTRIBUTE::tableSection.mip" superclass="" required="true"/>
   <rowAttribute label="ref" type="xs:string" title="Reference" useClass="" techNote="" description="Comment on provenance." uid="ATTRIBUTE::tableSection.ref" superclass="" required="false"/>
   <rowAttribute label="refNote" type="xs:string" title="Note on reference" useClass="" techNote="" description="Further information on provenance." uid="ATTRIBUTE::tableSection.refNote" superclass="" required="false"/>

@@ -32,6 +32,42 @@ def _isLinked(self):
       return True
   return False
 
+###
+### can generalise here
+###
+### _inx.iref_by_sect[ <this uid> ].a[ <path attribute:target:this sect> ]
+###             
+### 
+### resolveRequestPath( target=<var|mip|experiment|.....>, )
+###
+### "path" is a given by "spine" plus - objective - link.   3 elements. once origin and target are known, it reduces to a line: this logic sits in
+### instantiation.
+### Alternatively, if we instantiate only on the start, the target becomes a call argument: the path should then be derived from the links. 
+####
+###  E.g. assign each branch a name (mip,var,expt) and number sections (varPack = var.1),  then X.n --> Y.m goes X.n-1, .... C, y.1, ..Y.m
+### Gives a simple alogoithm to establish path from current location.
+### Not much benefit gained from instantiation on start ... but it gives some transparency.
+
+### to modify doc strings, need to use a class factory rather than instantiation: cannot write to __doc__ attribute of a method
+### You can modify the class .... but that doesn't help ..
+### unless all the generic stuff is in a base class ..
+###
+
+def manufacture_resolve_requestPath(start):
+  _startId = get_sectionId(start)
+  def _resolve_requestPath(self,target,filter=None,fmt=None):
+    startId = _startId
+    targetId = get_sectionId(target)
+    
+    
+
+class ResolveRequestPathMaster(object):
+   def __init__( start='requestLink'):
+     self.start = start
+
+   def __call__(self,target,filter=None,fmt=None):
+     """Return set of target objects linked on request path ..."""
+###
 def _var__mips(self):
     """Return set of mip item identifiers for MIPs requesting this var"""
     mips = set()
