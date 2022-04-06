@@ -29,7 +29,7 @@ xsi:schemaLocation="http://w3id.org/cmip6dr/ns vocabFrameworkSchema_v01beta.xsd"
   <rowAttribute label="treset" type="xs:integer" title="Option to override tier set for experiment(s)" useClass="" techNote="" description="If, for example, treset is set to 1, all tier 2 and 3 experiments associated with this request are treated as tier 1 variables." uid="ATTRIBUTE::requestItem.treset" superclass="" required="false"/>
   <rowAttribute label="ny" type="xs:integer" title="Default number of years." useClass="" techNote="" description="Default number of years, only used if experiment specifications are incomplete: will be redundant in final request." uid="ATTRIBUTE::requestItem.ny" superclass="" required="true"/>
   <rowAttribute label="nexmax" type="xs:integer" title="Maximum number of experiments requested." useClass="Redundant" techNote="" description="Used to provide volume estimate before the links to experiment groups was fully functional." uid="ATTRIBUTE::requestItem.nexmax" superclass="" required="false"/>
-  <rowAttribute label="nenmax" type="xs:integer" title="Number of ensemble members requested." useClass="" techNote="" description="" uid="ATTRIBUTE::requestItem.nenmax" superclass="" required="true"/>
+  <rowAttribute label="nenmax" type="xs:integer" title="Number of ensemble members requested. " useClass="" techNote="" description="If set to -1 then the request applies to to all the ensemble members specified in the ensz attribute of the experiment or experiments associated with the request. Note that ensz is a default ensemble size, and nenmax may be greater if one MIP wants more than the default number of ensembles. " uid="ATTRIBUTE::requestItem.nenmax" superclass="" required="true"/>
   <rowAttribute label="nymax" type="xs:float" title="Number of years requested." useClass="" techNote="" description="Number of years specified by the requesting MIP (will be redundant when links to temporal slices are fully implemented)." uid="ATTRIBUTE::requestItem.nymax" superclass="" required="true"/>
   <rowAttribute label="tslice" type="xs:string" title="Selection of years from experiment" useClass="internalLink" techNote="" description="Optional link to a time slice specifier which will define subset of the years from an experiment." uid="ATTRIBUTE::requestItem.tslice" superclass="" required="false"/>
 </table>
@@ -114,8 +114,8 @@ xsi:schemaLocation="http://w3id.org/cmip6dr/ns vocabFrameworkSchema_v01beta.xsd"
   <rowAttribute label="comment" type="xs:string" title="Comment" useClass="" techNote="" description="" uid="ATTRIBUTE::requestLink.comment" superclass="" required="true"/>
   <rowAttribute label="ref" type="xs:string" title="Reference" useClass="" techNote="" description="" uid="ATTRIBUTE::requestLink.ref" superclass="" required="false"/>
   <rowAttribute label="refNote" type="xs:string" title="Note on reference" useClass="" techNote="" description="" uid="ATTRIBUTE::requestLink.refNote" superclass="" required="false"/>
-  <rowAttribute label="refid" type="xs:string" title="reference to a request Variable Group" useClass="internalLink" techNote="" description="" uid="ATTRIBUTE::requestLink.refid" superclass="" required="true"/>
-  <rowAttribute label="opt" type="xs:string" title="option for selecting a subset of variables" useClass="" techNote="" description="" uid="ATTRIBUTE::requestLink.opt" superclass="" required="true"/>
+  <rowAttribute label="refid" type="xs:string" title="Reference to a request Variable Group" useClass="internalLink" techNote="" description="" uid="ATTRIBUTE::requestLink.refid" superclass="" required="true"/>
+  <rowAttribute label="opt" type="xs:string" title="Option for selecting a subset of variables" useClass="" techNote="" description="" uid="ATTRIBUTE::requestLink.opt" superclass="" required="true"/>
   <rowAttribute label="opar" type="xs:string" title="parameter associated with *opt*" useClass="" techNote="" description="" uid="ATTRIBUTE::requestLink.opar" superclass="" required="true"/>
 </table>
 <table label="tableSection" uid="SECTION:tableSection" title="3.4 CMOR Table Sections" id="tbs" itemLabelMode="def" level="1" maxOccurs="1" labUnique="No" description="Section of a MIP tables">
@@ -189,7 +189,7 @@ xsi:schemaLocation="http://w3id.org/cmip6dr/ns vocabFrameworkSchema_v01beta.xsd"
   <rowAttribute label="starty" type="xs:string" title="Start year" useClass="" techNote="" description="" uid="ATTRIBUTE::experiment.starty" superclass="" required="true"/>
   <rowAttribute label="endy" type="xs:string" title="End year" useClass="" techNote="" description="" uid="ATTRIBUTE::experiment.endy" superclass="" required="true"/>
   <rowAttribute label="yps" type="xs:integer" title="Years per simulation" useClass="" techNote="" description="" uid="ATTRIBUTE::experiment.yps" superclass="" required="true"/>
-  <rowAttribute label="ensz" type="aa:st__integerListMonInc" title="Ensemble size" useClass="" techNote="" description="" uid="ATTRIBUTE::experiment.ensz" superclass="" required="true"/>
+  <rowAttribute label="ensz" type="aa:st__integerListMonInc" title="Ensemble size" useClass="" techNote="" description="Default ensemble size. Note that some MIPs may request data from more than the default ensemble size." uid="ATTRIBUTE::experiment.ensz" superclass="" required="true"/>
   <rowAttribute label="ntot" type="xs:integer" title="Total number of years" useClass="" techNote="" description="" uid="ATTRIBUTE::experiment.ntot" superclass="" required="true"/>
   <rowAttribute label="comment" type="xs:string" title="Comment" useClass="" techNote="" description="" uid="ATTRIBUTE::experiment.comment" superclass="" required="true"/>
 </table>

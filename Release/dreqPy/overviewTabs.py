@@ -44,7 +44,7 @@ class r1(object):
     self.fnm = fnm
     assert vols == None or type(vols) == type( () ), 'vols argument must be none or tuple of length 2: %s' % type(vols)
     self.dq = sc.dq
-    self.mips = ['CMIP','AerChemMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PMIP', 'RFMIP', 'ScenarioMIP', 'VolMIP', 'CORDEX', 'DynVar', 'SIMIP', 'VIACSAB']
+    self.mips = ['CMIP','AerChemMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PAMIP', 'PMIP', 'RFMIP', 'ScenarioMIP', 'VolMIP', 'CORDEX', 'DynVar', 'SIMIP', 'VIACSAB']
     self.mipsp = self.mips[:-4]
     self.sc = sc
     self.pmax=pmax
@@ -168,7 +168,13 @@ class r1(object):
       thisee = self.cc['_%s' % m].a
       pref = 'cmvume'
     else:
-      labs = sorted( [i.label for i in self.ee[m2] if (i.label in self.cc[m].a and i._h.label == 'experiment')] )
+      try:
+        assert m2 in self.ee, 'Argument m2:%s not in self.ee' % m2
+        assert m in self.cc, 'Argument m:%s not in self.cc' % m
+        labs = sorted( [i.label for i in self.ee[m2] if (i.label in self.cc[m].a and i._h.label == 'experiment')] )
+      except:
+        print ( 'SEVERE: failed to create labs array' )
+        labs = []
 
     for ilab in labs:
         x = thisee[ilab]*2.

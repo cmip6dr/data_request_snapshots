@@ -78,7 +78,7 @@
    xs:integerOption to override tier set for experiment(s)ny;
    xs:integerDefault number of years.nexmax;
    xs:integerMaximum number of experiments requested.nenmax;
-   xs:integerNumber of ensemble members requested.nymax;
+   xs:integerNumber of ensemble members requested. nymax;
    xs:floatNumber of years requested.tslice;
    xs:stringSelection of years from experiment</xs:documentation></xs:annotation>
 <xs:complexType name="ct__requestItem_vocabItem">
@@ -297,8 +297,8 @@
    xs:stringCommentref;
    xs:stringReferencerefNote;
    xs:stringNote on referencerefid;
-   xs:stringreference to a request Variable Groupopt;
-   xs:stringoption for selecting a subset of variablesopar;
+   xs:stringReference to a request Variable Groupopt;
+   xs:stringOption for selecting a subset of variablesopar;
    xs:stringparameter associated with *opt*</xs:documentation></xs:annotation>
 <xs:complexType name="ct__requestLink_vocabItem">
 <xs:attribute name="id" type="xs:string"/>

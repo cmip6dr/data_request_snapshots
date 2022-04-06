@@ -248,7 +248,7 @@ class dreqQuery(object):
     self.uniqueRequest = False
 
     self.mips = set( [x.label for x in self.dq.coll['mip'].items ] )
-    self.mips = ['CMIP','AerChemMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PMIP', 'RFMIP', 'ScenarioMIP', 'VolMIP', 'CORDEX', 'DynVar', 'SIMIP', 'VIACSAB']
+    self.mips = ['CMIP','AerChemMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PAMIP', 'PMIP', 'RFMIP', 'ScenarioMIP', 'VolMIP', 'CORDEX', 'DynVar', 'SIMIP', 'VIACSAB']
     self.mipsp = self.mips[:-4]
     self.cmvGridId, i4 = fgrid.fgrid( self.dq )
     assert len(i4) == 0
@@ -1206,7 +1206,7 @@ class dreqQuery(object):
               else:
                 print ('TIME SLICE MULTIPLE OPTIONS FOR : %s, %s, %s, %s' % (v,e,str(ccts[(v,e)]), msg ) )
             else:
-              a = ccx.keys()[0]
+              a = list(ccx.keys())[0]
               b = min( [x[1] for x in ccts[(v,e)] ] )
               if type(a) == type( [] ):
                 l2ts[v][e] = a + [b,g,]

@@ -420,7 +420,7 @@ class dreqItemBase(object):
                  print ('WARN: non-compliant integer list [%s:%s]: %s' % (thissect,a,v))
                if self._a[a].type in [u'aa:st__integerListMonInc'] and self._strictRead:
                    for i in range(len(v)-1):
-                     assert v[i] < v[i+1], 'Attribute %s of type %s with non-monotonic value: %s' % (a,self._a[a].type,str(v))
+                     assert v[i] <= v[i+1], 'Attribute %s of type %s with non-monotonic value: %s' % (a,self._a[a].type,str(v))
              elif self._a[a].type == u'xs:integer':
                if self._rc.isIntStr( v ):
                  v = int(v)
