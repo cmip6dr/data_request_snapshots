@@ -64,7 +64,7 @@ class cmpdn(object):
 import re
 
 class makePurl(object):
-  def __init__(self):
+  def __init__(self,dq):
     c1 = re.compile( '^[a-zA-Z][a-zA-Z0-9]*$' )
     mv = dq.coll['var'].items
     oo = open( 'htmlRewrite.txt', 'w' )
@@ -138,7 +138,7 @@ class htmlTrees(object):
           bdy.append( '</ul></li>\n' )
       bdy.append( '</ul></body></html>\n' )
       oo = open( '%s/%s.html' % (self.odir,v.label), 'w' )
-      oo.write( dq.pageTmpl % ( title, '', '../', '../index.html', '\n'.join( bdy ) ) )
+      oo.write( self.dq.pageTmpl % ( title, '', '../', '../index.html', '\n'.join( bdy ) ) )
       oo.close()
       self.anno[v.label] = '<a href="../t/%s.html">Usage</a>' % v.label
     else:
@@ -350,7 +350,7 @@ htmlStyle['varRelLnk']    = {'getIrefs':['__all__']}
 htmlStyle['units']        = {'getIrefs':['__all__']}
 htmlStyle['timeSlice']    = {'getIrefs':['__all__']}
 
-if __name__ == "__main__":
+def run():
   try:
     import makeTables
     import scope
@@ -363,7 +363,7 @@ if __name__ == "__main__":
   assert os.path.isdir( 'html/index' ), 'Before running this script you need to create "html", "html/index" and "html/u" sub-directories, or edit the call to dq.makeHtml, and refernces to "u" in style lines below'
   assert os.path.isdir( 'tables' ), 'Before running this script you need to create a "tables" sub-directory, or edit the table_utils.makeTab class'
 
-  dq = dreq.loadDreq( htmlStyles=htmlStyle, manifest='docs/dreqManifest.txt' )
+  dq = dreq.loadDreq( htmlStyles=htmlStyle, manifest='out/dreqManifest.txt' )
 ##
 ## add special styles to dq object "itemStyle" dictionary.
 ##
@@ -399,5 +399,8 @@ if __name__ == "__main__":
   except:
     print ('Could not make tables ...')
     raise
-  mp = makePurl()
+  mp = makePurl( dq )
   mj = makeJs( dq )
+
+if __name__ == "__main__":
+  run()

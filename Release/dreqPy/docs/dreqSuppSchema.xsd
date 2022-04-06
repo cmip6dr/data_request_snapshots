@@ -5,6 +5,12 @@
 <xs:annotation><xs:appinfo>W3Schools Note</xs:appinfo><xs:documentation xml:lang="en">
        Some specialised string types
     </xs:documentation></xs:annotation>
+
+<xs:simpleType name="st__fortranType">
+<xs:restriction base="xs:token"><xs:enumeration value="integer"/><xs:enumeration value="real"/><xs:enumeration value="double"/><xs:enumeration value="character"/></xs:restriction></xs:simpleType>
+
+<xs:simpleType name="st__configurationType">
+<xs:restriction base="xs:token"><xs:enumeration value="size"/><xs:enumeration value="category"/><xs:enumeration value="ioOption"/><xs:enumeration value="capability"/></xs:restriction></xs:simpleType>
 <xs:simpleType name="st__uid"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z0-9:_.+-])+"/></xs:restriction></xs:simpleType>
 <xs:simpleType name="st__attLabel_def"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z0-9-])+"/></xs:restriction></xs:simpleType>
 <xs:simpleType name="st__attLabel_und"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z0-9_])+"/></xs:restriction></xs:simpleType>

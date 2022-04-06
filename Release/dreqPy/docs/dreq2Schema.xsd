@@ -5,6 +5,12 @@
 <xs:annotation><xs:appinfo>W3Schools Note</xs:appinfo><xs:documentation xml:lang="en">
        Some specialised string types
     </xs:documentation></xs:annotation>
+
+<xs:simpleType name="st__fortranType">
+<xs:restriction base="xs:token"><xs:enumeration value="integer"/><xs:enumeration value="real"/><xs:enumeration value="double"/><xs:enumeration value="character"/></xs:restriction></xs:simpleType>
+
+<xs:simpleType name="st__configurationType">
+<xs:restriction base="xs:token"><xs:enumeration value="size"/><xs:enumeration value="category"/><xs:enumeration value="ioOption"/><xs:enumeration value="capability"/></xs:restriction></xs:simpleType>
 <xs:simpleType name="st__uid"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z0-9:_.+-])+"/></xs:restriction></xs:simpleType>
 <xs:simpleType name="st__attLabel_def"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z0-9-])+"/></xs:restriction></xs:simpleType>
 <xs:simpleType name="st__attLabel_und"><xs:restriction base="xs:string"><xs:pattern value="([a-zA-Z0-9_])+"/></xs:restriction></xs:simpleType>
@@ -170,7 +176,7 @@
    xs:stringDeflate Level: NetCDF compression parametershuffle;
    xs:stringShuffle: NetCDF compression parameterdefaultPriority;
    xs:integerIndicative priority for this parameter, which is over-ruled by the requestVar priority setting, but provides a reference for organisation of the CMORvariablestype;
-   xs:stringData value type, e.g. float or doublemodeling_realm;
+   aa:st__fortranTypeData value type, e.g. float or doublemodeling_realm;
    xs:stringModeling Realmpositive;
    xs:stringCMOR Directive PositivemipTableSection;
    xs:stringSection of a tablemtid;
@@ -193,7 +199,7 @@
 <xs:attribute name="deflate_level" type="xs:string" use="required"/>
 <xs:attribute name="shuffle" type="xs:string" use="required"/>
 <xs:attribute name="defaultPriority" type="xs:integer" use="required"/>
-<xs:attribute name="type" type="xs:string" use="required"/>
+<xs:attribute name="type" type="aa:st__fortranType" use="required"/>
 <xs:attribute name="modeling_realm" type="xs:string" use="required"/>
 <xs:attribute name="positive" type="xs:string" use="required"/>
 <xs:attribute name="mipTableSection" type="xs:string"/>
@@ -356,7 +362,7 @@
    aa:st__uidRecord identifierMIPs;
    xs:stringMIPs which make use of this featureusage;
    xs:stringHow the feature is relevant to the data requesttype;
-   xs:stringType of modelrange;
+   aa:st__configurationTypeType of modelrange;
    xs:stringRange of valid values, e.g. xs:boolean</xs:documentation></xs:annotation>
 <xs:complexType name="ct__modelConfig_vocabItem">
 <xs:attribute name="id" type="xs:string"/>
@@ -364,7 +370,7 @@
 <xs:attribute name="title" type="xs:string"/><xs:attribute name="uid" type="aa:st__uid" use="required"/>
 <xs:attribute name="MIPs" type="xs:string" use="required"/>
 <xs:attribute name="usage" type="xs:string" use="required"/>
-<xs:attribute name="type" type="xs:string" use="required"/>
+<xs:attribute name="type" type="aa:st__configurationType" use="required"/>
 <xs:attribute name="range" type="xs:string" use="required"/>
 
 </xs:complexType><!--Auto-generated vocabulary complexType declarations/>-->
@@ -790,9 +796,9 @@
    xs:stringstored directionvalid_min;
    xs:floatvalid_minvalid_max;
    xs:floatvalid_maxtype;
-   xs:stringtypepositive;
+   aa:st__fortranTypetypepositive;
    xs:stringpositivevalue;
-   xs:stringvalueboundsValues;
+   xs:stringvalue of a scalar coordinateboundsValues;
    xs:stringbounds _valuesrequested;
    xs:stringrequestedboundsRequested;
    aa:st__floatListbounds_ requestedtolRequested;
@@ -814,7 +820,7 @@
 <xs:attribute name="direction" type="xs:string" use="required"/>
 <xs:attribute name="valid_min" type="xs:float"/>
 <xs:attribute name="valid_max" type="xs:float"/>
-<xs:attribute name="type" type="xs:string" use="required"/>
+<xs:attribute name="type" type="aa:st__fortranType" use="required"/>
 <xs:attribute name="positive" type="xs:string" use="required"/>
 <xs:attribute name="value" type="xs:string" use="required"/>
 <xs:attribute name="boundsValues" type="xs:string" use="required"/>

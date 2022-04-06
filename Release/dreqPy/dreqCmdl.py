@@ -40,6 +40,13 @@ def main_entry():
         from .examples import ex203
       ex203.main( scope )
       print( "Tests completed" )
+  elif sys.argv[1] == '--makeTables':
+      print( "Making web page tables" )
+      if scr:
+        import makeTables
+      else:
+        from . import makeTables
+      makeTables.run()
   else:
      x = scope.dreqUI(sys.argv[1:])
      x.run()

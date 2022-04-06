@@ -308,31 +308,31 @@ class makeTab(object):
 
         j = 0
         if oldpython:
-          thiscmv =  sorted( [dq.inx.uid[u] for u in ixt[t]], cmp=cmpdn(['prov','rowIndex','label']).cmp )
+          thiscmvlist =  sorted( [dq.inx.uid[u] for u in ixt[t]], cmp=cmpdn(['prov','rowIndex','label']).cmp )
         else:
-          thiscmv = sorted( [dq.inx.uid[u] for u in ixt[t]], key=kCmpdnPrl )
+          thiscmvlist = sorted( [dq.inx.uid[u] for u in ixt[t]], key=kCmpdnPrl )
 
-        for v in thiscmv:
-          cv = dq.inx.uid[ v.vid ]
-          strc = dq.inx.uid[ v.stid ]
+        for cmv in thiscmvlist:
+          var = dq.inx.uid[ cmv.vid ]
+          strc = dq.inx.uid[ cmv.stid ]
           if strc._h.label == 'remarks':
-            print ( 'ERROR: structure not found for %s: %s .. %s (%s)' % (v.uid,v.label,v.title,v.mipTable) )
+            print ( 'ERROR: structure not found for %s: %s .. %s (%s)' % (cmv.uid,cmv.label,cmv.title,cmv.mipTable) )
             ok = False
           else:
             sshp = dq.inx.uid[ strc.spid ]
             tshp = dq.inx.uid[ strc.tmid ]
-            ok = all( [i._h.label != 'remarks' for i in [cv,strc,sshp,tshp]] )
+            ok = all( [i._h.label != 'remarks' for i in [var,strc,sshp,tshp]] )
           #[u'shuffle', u'ok_max_mean_abs', u'vid', '_contentInitialised', u'valid_min', u'frequency', u'uid', u'title', u'rowIndex', u'positive', u'stid', u'mipTable', u'label', u'type', u'description', u'deflate_level', u'deflate', u'provNote', u'ok_min_mean_abs', u'modeling_realm', u'prov', u'valid_max']
 
           if not ok:
-            if (t,v.label) not in skipped:
+            if (t,cmv.label) not in skipped:
               ml = []
               for i in range(4):
-                 ii = [cv,strc,sshp,tshp][i]
+                 ii = [var,strc,sshp,tshp][i]
                  if ii._h.label == 'remarks':
                    ml.append( ['var','struct','time','spatial'][i] )
-              print ( 'makeTables: skipping %s %s: %s' % (t,v.label,','.join( ml)) )
-              skipped.add( (t,v.label) )
+              print ( 'makeTables: skipping %s %s: %s' % (t,cmv.label,','.join( ml)) )
+              skipped.add( (t,cmv.label) )
           else:
             dims = []
             dims +=  sshp.dimensions.split( '|' )
@@ -342,8 +342,8 @@ class makeTab(object):
             if 'coords' in strc.__dict__:
               dims +=  strc.coords.split( '|' )
             dims = ' '.join( dims )
-            if "qcranges" in dq.inx.iref_by_sect[v.uid].a:
-              u = dq.inx.iref_by_sect[v.uid].a['qcranges'][0]
+            if "qcranges" in dq.inx.iref_by_sect[cmv.uid].a:
+              u = dq.inx.iref_by_sect[cmv.uid].a['qcranges'][0]
               qc = dq.inx.uid[u]
               ll = []
               for k in ['valid_min', 'valid_max', 'ok_min_mean_abs', 'ok_max_mean_abs']:
@@ -357,15 +357,15 @@ class makeTab(object):
                
             if mode == 'c':
               try:
-                orec = [str(v.defaultPriority),cv.title, cv.units, cv.description, v.description, cv.label, cv.sn, strc.cell_methods, v.positive, v.type, dims, v.label, v.modeling_realm, v.frequency, strc.cell_measures, v.prov,v.provNote,str(v.rowIndex),v.uid,v.vid,v.stid,strc.title, valid_min, valid_max, ok_min_mean_abs, ok_max_mean_abs]
+                orec = [str(cmv.defaultPriority),var.title, var.units, var.description, cmv.description, var.label, var.sn, strc.cell_methods, cmv.positive, cmv.type, dims, cmv.label, cmv.modeling_realm, cmv.frequency, strc.cell_measures, cmv.prov,cmv.provNote,str(cmv.rowIndex),cmv.uid,cmv.vid,cmv.stid,strc.title, valid_min, valid_max, ok_min_mean_abs, ok_max_mean_abs]
               except:
-                print ('FAILED TO CONSTRUCT RECORD: %s [%s], %s [%s]' % (v.uid,v.label,cv.uid,cv.label) )
+                print ('FAILED TO CONSTRUCT RECORD: %s [%s], %s [%s]' % (cmv.uid,cmv.label,var.uid,var.label) )
                 raise
             else:
-              orec = ['',cv.title, cv.units, v.description, '', cv.label, cv.sn, '','', strc.cell_methods, valid_min, valid_max, ok_min_mean_abs, ok_max_mean_abs, v.positive, v.type, dims, v.label, v.modeling_realm, v.frequency, strc.cell_measures, strc.flag_values, strc.flag_meanings,v.prov,v.provNote,str(v.rowIndex),cv.uid]
+              orec = ['',var.title, var.units, cmv.description, '', var.label, var.sn, '','', strc.cell_methods, valid_min, valid_max, ok_min_mean_abs, ok_max_mean_abs, cmv.positive, cmv.type, dims, cmv.label, cmv.modeling_realm, cmv.frequency, strc.cell_measures, strc.flag_values, strc.flag_meanings,cmv.prov,cmv.provNote,str(cmv.rowIndex),var.uid]
 
             if byFreqRealm:
-              orec = [v.mipTable,] + orec
+              orec = [cmv.mipTable,] + orec
 
 ##!
 # CHECK -- ERROR HERE FOR "TOTAL" ROW --spurious mips in thismips ---
@@ -375,37 +375,37 @@ class makeTab(object):
 ##
 ## union of all mips interested in this variable
 ##
-              thismips = chkv.chkCmv( v.uid )
+              thismips = chkv.chkCmv( cmv.uid )
 ##
 ## all mips requesting this variable for this experiment
 ##
-              thismips2 = chkv.chkCmv( v.uid, byExpt=True, expt=exptUid )
+              thismips2 = chkv.chkCmv( cmv.uid, byExpt=True, expt=exptUid )
               orec.append( ','.join( sorted( list( thismips) ) ) )
               orec.append( ','.join( sorted( list( thismips2) ) ) )
 
             if tslice != None:
               msgLevel = 0
-              if v.uid in tslice and msgLevel > 1:
-                print ( 'INFO.table_utils.01001: slice 3: %s : %s' % ( str( tslice[v.uid] ), v.label ) )
-              if v.uid not in tslice:
+              if cmv.uid in tslice and msgLevel > 1:
+                print ( 'INFO.table_utils.01001: slice 3: %s : %s' % ( str( tslice[cmv.uid] ), cmv.label ) )
+              if cmv.uid not in tslice:
                 orec += ['All', '','','']
-              elif type( tslice[v.uid] ) == type( 0 ):
-                print ( 'ERROR: unexpected tslice type: %s, %s' % (v.uid, tslice[v.uid] ) )
-              elif len(  tslice[v.uid] ) == 3:
-                x,priority,grid = tslice[v.uid]
+              elif type( tslice[cmv.uid] ) == type( 0 ):
+                print ( 'ERROR: unexpected tslice type: %s, %s' % (cmv.uid, tslice[cmv.uid] ) )
+              elif len(  tslice[cmv.uid] ) == 3:
+                x,priority,grid = tslice[cmv.uid]
                 orec[0] = priority
                 if x != None:
                    tslab,tsmode,a,b = x
                    orec += [tslab,tsmode,'',grid]
                 else:   
-                   print ( 'WARN.table_utils.01001: slice 3: %s : %s' % ( str( tslice[v.uid] ), v.label ) )
+                   print ( 'WARN.table_utils.01001: slice 3: %s : %s' % ( str( tslice[cmv.uid] ), cmv.label ) )
                    orec += ['*unknown*','','',grid]
               else:
-                tslab,tsmode,a,b,priority,grid = tslice[v.uid]
+                tslab,tsmode,a,b,priority,grid = tslice[cmv.uid]
                 if type( priority ) != type(1):
                   thisp = priority
                   priority = thisp[1]
-                  ##print 'ERROR in priority type[2]: ',priority, tslice[v.uid]
+                  ##print 'ERROR in priority type[2]: ',priority, tslice[cmv.uid]
                 orec[0] = priority
                      
                 if tsmode[:4] in ['simp','bran']:
