@@ -447,7 +447,7 @@ class dreqItemBase(object):
                  v = tuple( v.split() )
                else:
                  v = (v,)
-             elif self._a[a].type not in [u'xs:string', u'aa:st__uid', 'aa:st__fortranType', 'aa:st__configurationType']:
+             elif self._a[a].type not in [u'xs:string', u'aa:st__uid', 'aa:st__fortranType', 'aa:st__configurationType','aa:st__sliceType']:
                print ('ERROR: Type %s not recognised [%s:%s]' % (self._a[a].type,self._h.label,a) )
 
              if erase:
@@ -968,7 +968,7 @@ class loadDreq(object):
     return self.defaultItemLineStyle
 
   def updateByUid( self, uid, dd, delete=[] ):
-    typePar={'xs:string':'x', 'xs:integer':0, 'xs:float':1., 'xs:boolean':True, 'xs:duration':'x'}
+    typePar={'xs:string':'x', 'xs:integer':0, 'xs:float':1., 'xs:boolean':True, 'xs:duration':'x', 'aa:st__sliceType':'simpleRange','aa:st__fortrantype':'real'}
     listTypePar={ "aa:st__integerList":1,"aa:st__integerListMonInc":1, "aa:st__stringList":'x', "aa:st__floatList":1. }
 
     mmm = self.c.getByUid( uid )
@@ -1029,7 +1029,7 @@ class loadDreq(object):
     print ('XML document saved to %s' % targ)
  
   def __string4xml__(self,v,typ):
-    if typ in ['xs:string','xs:duration']:
+    if typ in ['xs:string','xs:duration','aa:st__sliceType']:
        return v
     elif typ in ['xs:integer', 'xs:float', 'xs:boolean']:
        return str(v)

@@ -70,7 +70,7 @@ class timeSlice( object ):
         return (1,(ee['DAMIP40'][0],p), 'Taking larger containing slice')
       return (-1,None,'Multiple slice types: %s' % sorted(ee.keys()))
 
-    if not ( tst == 'simpleRange' or (len(tst) > 13 and tst[:13] == 'branchedYears') ):
+    if not ( tst in ['simpleRange','relativeRange'] or (len(tst) > 13 and tst[:13] == 'branchedYears') ):
       return (-2,None,'slice type aggregation not supported')
     if len(tsl) == 2:
       tsll = list( tsl )
@@ -102,7 +102,7 @@ def sortTimeSlice( tsl ):
   if len(s) > 1:
     return (-1,None,'Multiple slice types')
   tst = s.pop()
-  if not ( tst == 'simpleRange' or (len(tst) > 13 and tst[:13] == 'branchedYears') ):
+  if not ( tst in ['simpleRange','relativeRange'] or (len(tst) > 13 and tst[:13] == 'branchedYears') ):
     return (-2,None,'slice type aggregation not supported')
   if len(tsl) == 2:
     tsll = list( tsl )
@@ -899,8 +899,8 @@ class dreqQuery(object):
     if 'tslice' in rqi.__dict__:
       ts = self.dq.inx.uid[ rqi.tslice ]
       if ts._h.label == 'timeSlice':
-        if ts.type == 'simpleRange':
-          tsl = (ts.label,'simpleRange', ts.start,ts.end)
+        if ts.type in ['simpleRange','relativeRange']:
+          tsl = (ts.label, ts.type, ts.start,ts.end)
         elif ts.type == 'branchedYears':
           tsl = (ts.label,'%s:%s' % (ts.type,ts.child), ts.start,ts.end)
         else:
