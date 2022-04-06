@@ -58,15 +58,21 @@ class xlsx(object):
       self.wb.close()
 
 class vsum(object):
-  def __init__(self,sc,odsz,npy,exptFilter=None, odir='xls', tabByFreqRealm=False):
+  def __init__(self,sc,odsz,npy,exptFilter=None, odir='xls', tabByFreqRealm=False,txt=False,txtOpts=None):
     self.tabByFreqRealm = tabByFreqRealm
+    self.doTxt = txt
+    self.txtOpts = txtOpts
     idir = dreq.DOC_DIR
     if 'collect' not in sc.dq._extensions_:
       extCollect.add(sc.dq)
     self.sc = sc
     self.exptMipRql = collections.defaultdict( set )
+    if exptFilter != None:
+      assert type( exptFilter ) == type( set() ), 'FATAl.vsum.001: exptFilter argument must be type set: %s' % type( exptFilter )
     for i in self.sc.dq.coll['requestLink'].items:
       expts = requestLink__expt(i,rql=[i.uid,])
+      if exptFilter != None:
+        expts = exptFilter.intersection( expts )
       for e in expts:
         self.exptMipRql[ (i.mip,self.sc.dq.inx.uid[e].label) ].add( i.uid)
     self.odsz=odsz
@@ -76,6 +82,7 @@ class vsum(object):
     self.accum = False
     self.odir = odir
     self.efnsfx = ''
+    self.accPdict = collections.defaultdict( set )
     if sc.gridPolicyForce == 'native':
       self.efnsfx = '_fn'
     elif sc.gridPolicyForce == '1deg':
@@ -109,20 +116,27 @@ class vsum(object):
       if mips == None:
         theseMips =  ['TOTAL',] + self.sc.mips
       else:
-        theseMips = mips
+        theseMips = list(mips)
+
+## move *TOTAL to end of list.
+      if '*TOTAL' in theseMips:
+         theseMips.remove( '*TOTAL' )
+         theseMips.append( '*TOTAL' )
 
       self.rres = {}
       self.rresu = {}
     
       for m in theseMips:
         olab = m
+        useAccPdict = False
         if m == '*TOTAL':
-            thism = theseMips.copy()
+            thism = theseMips[:]
             if type( thism ) == type( set() ):
               thism.remove( '*TOTAL' )
             else:
-              thism.pop( '*TOTAL' )
+              thism.remove( '*TOTAL' )
             olab = misc_utils.setMlab( thism )
+            useAccPdict = True
         elif type( theseMips ) == type( dict() ):
             thism = {m:theseMips[m]}
         else:
@@ -134,7 +148,7 @@ class vsum(object):
 
         self.run( thism, '%s/requestVol_%s_%s_%s' % (self.odir,olab,self.sc.tierMax,pmax), pmax=pmax,doxlsx=makeTabs )
 
-        self.anal(olab=olab,doUnique='TOTAL' in theseMips, makeTabs=makeTabs)
+        self.anal(olab=olab,doUnique='TOTAL' in theseMips, makeTabs=makeTabs, useAccPdict=useAccPdict)
         ttl = sum( [x for k,x in self.res['vu'].items()] )*2.*1.e-12
         volsmm[m] = self.res['vm']
         volsmmt[m] = self.res['vmt']
@@ -189,7 +203,7 @@ class vsum(object):
     else:
       return '%s/%s_%s_%s_%s_%s%s' % (self.odir,self.xlsPrefixM,olab,lab2,self.sc.tierMax,self.pmax,self.efnsfx)
 
-  def anal(self,olab=None,doUnique=False,makeTabs=False,mode='full'):
+  def anal(self,olab=None,doUnique=False,makeTabs=False,mode='full',useAccPdict=False):
     vmt = collections.defaultdict( int )
     vm = collections.defaultdict( int )
     ve = collections.defaultdict( int )
@@ -249,12 +263,12 @@ class vsum(object):
         ss = ss.union( lm[m] )
         if makeTabs:
           ##table_utils.makeTab(self.sc.dq, subset=lm[m], dest=self.xlsDest('m',olab,m), collected=cc[m],exptUid=self.sc.exptByLabel.get(m,m) )
-          table_utils.makeTab(self.sc, subset=lm[m], dest=self.xlsDest('m',olab,m), collected=cc[m] )
+          table_utils.makeTab(self.sc, subset=lm[m], dest=self.xlsDest('m',olab,m), collected=cc[m], txt=self.doTxt, txtOpts=self.txtOpts )
 
     if olab != None and makeTabs:
-        table_utils.makeTab(self.sc, subset=ss, dest=self.xlsDest('m',olab,'TOTAL'), collected=cct)
+        table_utils.makeTab(self.sc, subset=ss, dest=self.xlsDest('m',olab,'TOTAL'), collected=cct, txt=self.doTxt, txtOpts=self.txtOpts )
         if olab != 'TOTAL' and doUnique:
-          table_utils.makeTab(self.sc, subset=s_lm, dest=self.xlsDest('m',olab,'Unique'), collected=s_cc)
+          table_utils.makeTab(self.sc, subset=s_lm, dest=self.xlsDest('m',olab,'Unique'), collected=s_cc, txt=self.doTxt, txtOpts=self.txtOpts )
 
     cc = collections.defaultdict( dict )
     ucc = collections.defaultdict( dict )
@@ -265,7 +279,12 @@ class vsum(object):
       if olab != None and makeTabs:
         el = self.sc.dq.inx.uid[e].label
 
-        if olab in ['Total','TOTAL']:
+        if useAccPdict:
+          pdict = collections.defaultdict( set )
+          for vid, p in self.accPdict[e]:
+               pdict[vid].add( p )
+             
+        elif olab in ['Total','TOTAL']:
           pdict = None
         elif (olab,el) in self.exptMipRql:
           pdict = collections.defaultdict( set )
@@ -274,8 +293,9 @@ class vsum(object):
              for rqvid in self.sc.dq.inx.iref_by_sect[rql.refid].a['requestVar']:
                rqv = self.sc.dq.inx.uid[rqvid]
                pdict[rqv.vid].add( rqv.priority )
+               self.accPdict[e].add( (rqv.vid,rqv.priority) )
         else:
-          print 'INFO.00201: olab,e not found:',olab,el
+          print ( 'INFO.00201: olab,e not found:',olab,el )
           pdict = None
 
         tslice = {}
@@ -284,7 +304,7 @@ class vsum(object):
             tslice[v] = self.sc.cmvts[v][e]
         dest = self.xlsDest('e',olab,el)
         mode ='e'
-        table_utils.makeTab(self.sc, subset=lex[e], dest=self.xlsDest(mode,olab,el), collected=cc[e],byFreqRealm=self.tabByFreqRealm, tslice=tslice, exptUid=e, tabMode=mode, pdict=pdict)
+        table_utils.makeTab(self.sc, subset=lex[e], dest=self.xlsDest(mode,olab,el), collected=cc[e],byFreqRealm=self.tabByFreqRealm, tslice=tslice, exptUid=e, tabMode=mode, pdict=pdict, txt=self.doTxt, txtOpts=self.txtOpts )
 
     if olab != 'TOTAL' and doUnique:
       for e,t in s_vet:
@@ -292,7 +312,7 @@ class vsum(object):
       for e in sorted( uve.keys() ):
         if olab != None and makeTabs:
           el = self.sc.dq.inx.uid[e].label
-          table_utils.makeTab(self.sc, subset=s_lex[e], dest=self.xlsDest('u',olab,el), collected=ucc[e])
+          table_utils.makeTab(self.sc, subset=s_lex[e], dest=self.xlsDest('u',olab,el), collected=ucc[e], txt=self.doTxt, txtOpts=self.txtOpts)
 
     self.res = { 'vmt':vmt, 'vet':vet, 'vm':vm, 'uve':uve, 've':ve, 'lm':lm, 'lex':lex, 'vu':vu, 'cc':cc, 'cct':cct, 'vf':vf}
         

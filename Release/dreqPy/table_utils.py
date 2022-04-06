@@ -146,7 +146,7 @@ class xlsx(object):
                raise
 
      if self.txt:
-        self.oo.write( '\t'.join( [t,] + orec) + '\n' )
+        self.oo.write( '\t'.join( [t,] + [x.replace('"',"'") for x in orec]) + '\n' )
 
   def varrec(self,j,orec):
      if self.xls:
@@ -158,7 +158,7 @@ class xlsx(object):
 
   def var(self):
       if self.xls:
-        self.sht = self.newSheet( 'var' )
+       self.sht = self.newSheet( 'var' )
       j = 0
       hrec = ['Long name', 'units', 'description', 'Variable Name', 'CF Standard Name' ]
       if self.xls:
@@ -366,10 +366,19 @@ class makeTab(object):
                     thisp = str( min( pdict[cmv.uid] ) )
                   else:
                     thisp = str(cmv.defaultPriority)
-                    print 'ERROR.priority.0101: ',cmv.label,dest
+                    print ('ERROR.priority.0101: %s, %s ' % (cmv.label,dest) )
                 else:
                   thisp = str(cmv.defaultPriority)
-                orec = [thisp,var.title, var.units, var.description, cmv.description, var.label, var.sn, strc.cell_methods, cmv.positive, cmv.type, dims, cmv.label, cmv.modeling_realm, cmv.frequency, strc.cell_measures, cmv.prov,cmv.provNote,str(cmv.rowIndex),cmv.uid,cmv.vid,cmv.stid,strc.title, valid_min, valid_max, ok_min_mean_abs, ok_max_mean_abs]
+#
+# avoid duplication of information (added in 01.00.29)
+##
+                if cmv.description != var.description:
+                  cmmt = cmv.description
+                else:
+                  cmmt = ''
+                orec = [thisp,var.title, var.units, var.description, cmmt, var.label, var.sn, strc.cell_methods, cmv.positive, cmv.type, dims, cmv.label, cmv.modeling_realm, cmv.frequency, strc.cell_measures, cmv.prov,cmv.provNote,str(cmv.rowIndex),cmv.uid,cmv.vid,cmv.stid,strc.title, valid_min, valid_max, ok_min_mean_abs, ok_max_mean_abs]
+
+##
               except:
                 print ('FAILED TO CONSTRUCT RECORD: %s [%s], %s [%s]' % (cmv.uid,cmv.label,var.uid,var.label) )
                 raise
@@ -417,7 +426,6 @@ class makeTab(object):
                 if type( priority ) != type(1):
                   thisp = priority
                   priority = thisp[1]
-                  ##print 'ERROR in priority type[2]: ',priority, tslice[cmv.uid]
                 orec[0] = '%s' % priority
                      
                 if tsmode[:4] in ['simp','bran']:
@@ -437,7 +445,7 @@ class makeTab(object):
                 orec.append( grid )
                 
             if orec[0] in [0,'0',None]:
-                  print 'ERROR.priority.006: ',orec,dest
+                  print ('ERROR.priority.006: %s, %s ' % (orec,dest))
             if withoo:
               oo.write( '\t'.join(orec ) + '\n' )
             j+=1

@@ -23,9 +23,13 @@ Class to analyse the usage of variables in the data request.
     cc = {}
     l = dq.inx.iref_by_sect[v.uid].a['CMORvar']
     for i in l:
-      r = dq.inx.uid[i]
-      kk = '%s.%s' % (r.mipTable, r.label )
-      cc[i] = (kk,self.chkCmv( i, byExpt=byExpt, byBoth=byBoth ) )
+      try:
+        r = dq.inx.uid[i]
+        kk = '%s.%s' % (r.mipTable, r.label )
+        cc[i] = (kk,self.chkCmv( i, byExpt=byExpt, byBoth=byBoth ) )
+      except:
+        print ( 'failed at uid = %s' % i )
+        raise
 
     return cc
 
@@ -110,7 +114,7 @@ Class to analyse the usage of variables in the data request.
     if byExpt or byBoth:
       s3 = set()
 
-      if expt != None:
+      if expt != None and expt in self.sc.rqLinkByExpt:
         for i in s2:
           if i in self.sc.rqLinkByExpt[expt]:
             s3.add(i)

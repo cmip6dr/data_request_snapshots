@@ -9,7 +9,9 @@ except:
   ##from . import __init__
   ##DOC_DIR = __init__.DOC_DIR
 
-import string, os, sys, collections
+import os, sys, collections
+
+usingPython3 = sys.version_info >= (3,0)
 
 try:
   import pkgutil
@@ -144,14 +146,42 @@ class check2(checkbase):
     os.unlink( '.simpleCheck_check2_err.txt' )
     os.unlink( '.simpleCheck_check2.txt' )
 
+  def _getCmd(self):
+    if self.entryPoint == 'drq':
+       self.cmd = 'drq'
+    else:
+       if usingPython3:
+         self.cmd = 'python3 dreqCmdl.py'
+       else:
+         self.cmd = 'python dreqCmdl.py'
+
+  def _ch05_checkMcfg(self):
+    self._getCmd()
+    thisCmd = '%s -m CMIP -e historical --mcfg 259200,60,64800,40,20,5,100' % self.cmd
+    os.popen( '%s 2> .simpleCheck_check5_err.txt 1>.simpleCheck_check5.txt' % thisCmd ).readlines()
+
+    ii = open( '.simpleCheck_check5_err.txt' ).readlines()
+    if len(ii) > 0:
+      print ( 'WARNING[005]: failed to get volume est. with command line call' )
+      self.ok = False
+      ##self._clear_ch04()
+      return
+
+    ii = open( '.simpleCheck_check5.txt' ).readlines()
+    if len(ii) < 1:
+      print ( 'WARNING[006]: failed to get get volume est. with command line call' )
+      self.ok = False
+      ##self._clear_ch04()
+      return
+
+    self.ok = True
+    return
+
   def _ch04_checkCmd(self):
     import os
-    if self.entryPoint == 'drq':
-       cmd = 'drq'
-    else:
-       cmd = 'python dreqCmdl.py'
+    self._getCmd()
 
-    os.popen( '%s -v  2> .simpleCheck_check2_err.txt 1>.simpleCheck_check2.txt' % cmd ).readlines()
+    os.popen( '%s -v  2> .simpleCheck_check2_err.txt 1>.simpleCheck_check2.txt' % self.cmd ).readlines()
 
     ii = open( '.simpleCheck_check2_err.txt' ).readlines()
     if len(ii) > 0:

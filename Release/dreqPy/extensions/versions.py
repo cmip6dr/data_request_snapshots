@@ -13,13 +13,13 @@ def compare(self, oth,count=True,lst='short',sect='CMORvar' ):
       if k not in this._uidDict:
         n0 += 1
         if lst != None:
-          print 'Only in %s: %s [%s]' % (oth.version, k, that._uidDict[k].label )
+          print ( 'Only in %s: %s [%s]' % (oth.version, k, that._uidDict[k].label ) ) 
 
     for k in sorted( this._uidDict.keys() ):
       if k not in that._uidDict:
         n1 += 1
         if lst != None:
-          print 'Only in %s: %s [%s]' % (self.version, k, this._uidDict[k].label )
+          print ( 'Only in %s: %s [%s]' % (self.version, k, this._uidDict[k].label ) )
       elif this._uidDict[k].__dict__ != that._uidDict[k].__dict__:
         n2 += 1
         
@@ -29,16 +29,16 @@ def compare(self, oth,count=True,lst='short',sect='CMORvar' ):
         for i in s1 + s2 + s3:
           cc[i] += 1
         if lst == 'long':
-          print 'Changed in %s -- %s: %s [%s], {%s|%s|%s}' % (self.version,oth.version, k, this._uidDict[k].label, str(s1),str(s2),str(s3) )
+          print ('Changed in %s -- %s: %s [%s], {%s|%s|%s}' % (self.version,oth.version, k, this._uidDict[k].label, str(s1),str(s2),str(s3) ) )
 
     if n0 == 0 and n1 == 0:
-      print '%s (%s --> %s):: No additons or removals' % (sect,oth.version,self.version)
+      print ('%s (%s --> %s):: No additons or removals' % (sect,oth.version,self.version) )
     else:
-      print '%s (%s --> %s):: Added %s, Removed %s' % (sect,oth.version,self.version,n1,n0)
-    print '%s:: Number changed in %s -- %s: %s' % (sect, self.version,oth.version,n2)
+      print ('%s (%s --> %s):: Added %s, Removed %s' % (sect,oth.version,self.version,n1,n0) )
+    print ('%s:: Number changed in %s -- %s: %s' % (sect, self.version,oth.version,n2) )
     if n2 > 0:
       msg = '; '.join( ['%s: %s' % (k,cc[k]) for k in sorted(cc.keys())] )
-      print '%s:: Attribute changes: %s' % (sect,msg)
+      print ('%s:: Attribute changes: %s' % (sect,msg) )
 
 def fetch(self,version=None, vdir=None):
     files = ['dreq.xml', 'dreq2Defn.xml', 'dreqSupp.xml', 'dreqSuppDefn.xml']
@@ -53,7 +53,7 @@ def fetch(self,version=None, vdir=None):
       u = utmpl % (version,f)
       page = requests.get(u)
       md5 = hashlib.md5(page.text.encode('utf-8')).hexdigest()
-      print version, f, md5
+      print ( (version, f, md5 ) )
       oo = open( '%s/%s/%s' % (vdir,version,f), 'w' )
       oo.write( page.text.encode('utf-8') )
       oo.close()

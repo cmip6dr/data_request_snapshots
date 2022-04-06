@@ -3,13 +3,23 @@
 import collections
 
 
+def _expt__CMORvar(self):
+    """Return set of CMORvar item identifiers for CMORvars requested for this experiment"""
+    cmv = set()
+    for u in self._get__requestItem():
+      ri = self._inx.uid[u]
+      rl = self._inx.uid[ri.rlid]
+      for i in rl._get__CMORvar():
+        cmv.add(i)
+    return cmv
+
 def _expt__requestItem(self):
     """Return set of request item item identifiers for request items linked directly or indirectly to this experiment"""
 
     s = set()
     for u in [self.uid,self.mip,self.egid]:
-      if 'requestItem' in self._inx.uid[u].a:
-        for x in self._inx.uid[u].a['requestItem']:
+      if 'requestItem' in self._inx.iref_by_sect[u].a:
+        for x in self._inx.iref_by_sect[u].a['requestItem']:
           s.add(x)
     return s
     
@@ -245,6 +255,7 @@ def  add(dq):
    """Add extensions to data request section classes."""
    dq.coll['mip'].items[0].__class__._get__expt = _mip__expt
    dq.coll['experiment'].items[0].__class__._get__requestItem = _expt__requestItem
+   dq.coll['experiment'].items[0].__class__._get__CMORvar = _expt__CMORvar
    dq.coll['requestItem'].items[0].__class__._get__expt = _requestItem__expt
    dq.coll['requestLink'].items[0].__class__._get__expt = _requestLink__expt
    dq.coll['requestLink'].items[0].__class__._get__CMORvar = _requestLink__CMORvar

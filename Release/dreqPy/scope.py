@@ -17,15 +17,17 @@ except:
 if imm == 1:
   from utilities import cmvFilter, gridOptionSort
   import misc_utils
+  import scope_utils
   import fgrid
   import volsum
 else:
+  import dreqPy.scope_utils as scope_utils
   import dreqPy.volsum as volsum
   import dreqPy.fgrid as fgrid
   from dreqPy.utilities import cmvFilter, gridOptionSort 
   import dreqPy.misc_utils as misc_utils
 
-import collections, string, operator
+import collections, operator
 import sys, os
 
 def intdict():
@@ -247,8 +249,9 @@ class dreqQuery(object):
     self.exptFilterBlack = None
     self.uniqueRequest = False
 
-    self.mips = set( [x.label for x in self.dq.coll['mip'].items ] )
-    self.mips = ['CMIP','AerChemMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PAMIP', 'PMIP', 'RFMIP', 'ScenarioMIP', 'VolMIP', 'CORDEX', 'DynVar', 'SIMIP', 'VIACSAB']
+    ##self.mips = set( [x.label for x in self.dq.coll['mip'].items ] )
+    ##self.mips = ['CMIP','AerChemMIP', 'C4MIP', 'CFMIP', 'DAMIP', 'DCPP', 'FAFMIP', 'GeoMIP', 'GMMIP', 'HighResMIP', 'ISMIP6', 'LS3MIP', 'LUMIP', 'OMIP', 'PAMIP', 'PMIP', 'RFMIP', 'ScenarioMIP', 'VolMIP', 'CORDEX', 'DynVar', 'SIMIP', 'VIACSAB']
+    self.mips = ['CMIP'] + scope_utils.mips
     self.mipsp = self.mips[:-4]
     self.cmvGridId, i4 = fgrid.fgrid( self.dq )
     assert len(i4) == 0
@@ -1007,8 +1010,8 @@ class dreqQuery(object):
                l2.append( self.dq.inx.uid[u] )
 
     l20 = self.rqiByMip0( mip )
-    for i in l20:
-      assert i in l2
+    ##for i in l20:
+      ##assert i in l2
     return l2
     
     
@@ -1061,7 +1064,6 @@ class dreqQuery(object):
          print ('Created directory %s for: %s' % (odir,msg) )
 
   def xlsByMipExpt(self,m,ex,pmax,odir='xls',xls=True,txt=False,txtOpts=None):
-    import scope_utils
     mxls = scope_utils.xlsTabs(self,tiermax=self.tierMax,pmax=pmax,xls=xls, txt=txt, txtOpts=txtOpts,odir=odir)
     mlab = misc_utils.setMlab( m )
     mxls.run( m, mlab=mlab )
@@ -1598,7 +1600,7 @@ class dreqUI(object):
 -------------------------
       -v : print version and exit;
       --unitTest : run some simple tests;
-      -m <mip>:  MIP of list of MIPs (comma separated; for objective selection see note [1] below);
+      -m <mip>:  MIP of list of MIPs (comma separated; use '_all_' for all;  for objective selection see note [1] below);
       -l <options>: List for options: 
               o: objectives
               e: experiments
@@ -1621,10 +1623,12 @@ class dreqUI(object):
       --omitCmip : omit the CMIP core data request (included by default);
       --allgrd :  When a variable is requested on multiple grids, archive all grids requested (default: only the finest resolution);
       --unique :  List only variables which are requested uniquely by this MIP, for at least one experiment;
-      --esm :  include ESM experiments (default is to omit esm-hist etc from volume estimates);
-      --txt : Create text file with requested variables;
+      --esm :  include ESM experiments (default is to omit esm-hist etc from volume estimates; over-ridden by --mcat);
+      --txt : Create text (tab seperated variables) file with requested variables; the files are placed in the same directory as xls files;
       --mcfg : Model configuration: 7 integers, comma separated, 'nho','nlo','nha','nla','nlas','nls','nh1'
                  default: 259200,60,64800,40,20,5,100
+      --mcat [none]: Source types inlcuded in model, as comma separated list: only experiments with all required source types are included in volume estimates. Set to 'none' to turn off filtering;
+      --mcat-strict : if present, the experiments are filtered to those with the specified configuration, not allowing components to be switched off;
       --txtOpts : options for content of text file: (v|c)[(+|-)att1[,att2[...]]]
       --xlsDir <directory> : Directory in which to place variable listing [xls];
       --xmlVersion <version> : version number of XML document [only with extension enabled -- not stable];
@@ -1641,7 +1645,7 @@ e.g.
 drq -m HighResMIP:Ocean.DiurnalCycle
 """
   def __init__(self,args):
-    self.adict = {}
+    self.adict = {'mcatStrict':False}
     self.knownargs = {'-m':('m',True), '-p':('p',True), '-e':('e',True), '-t':('t',True), \
                       '-h':('h',False), '--printLinesMax':('plm',True), \
                       '-l':('l',True),
@@ -1661,6 +1665,8 @@ drq -m HighResMIP:Ocean.DiurnalCycle
                       '--allgrd':('allgrd',False), \
                       '--unique':('unique',False), \
                       '--mcfg':('mcfg',True), \
+                      '--mcat':('mcat',True), \
+                      '--mcatStrict':('mcatStrict',False), \
                       '--txtOpts':('txtOpts',True), \
                       '--xmlVersion':('xmlVersion',True), \
                       '--xlsDir':('xlsdir',True), '--xls':('xls',False) \
@@ -1681,6 +1687,9 @@ drq -m HighResMIP:Ocean.DiurnalCycle
 
     assert self.checkArgs( notKnownArgs ), 'FATAL ERROR 001: Arguments not recognised: %s' % (str(notKnownArgs) )
 
+    if self.adict.get('mcat','none') != 'none':
+      self.adict['esm'] = True
+
     if 'm' in self.adict:
       if self.adict['m'] == '_all_':
         pass
@@ -1699,6 +1708,14 @@ drq -m HighResMIP:Ocean.DiurnalCycle
         if 'omitcmip' not in self.adict and 'CMIP' not in self.adict['m']:
           self.adict['m'].add( 'CMIP' )
 
+    if self.adict.get('mcat','none') != 'none':
+      stys = self.adict['mcat'].split(',')
+      stys_pp = stys[:]
+      if 'AOGCM' in stys:
+         stys_pp.append( 'AGCM' )
+      if 'AGCM' in stys_pp:
+         stys_pp += ['LAND','RAD'] 
+      self.adict['_mcat'] = (stys,stys_pp)
     if 'grdpol' in self.adict:
       assert self.adict['grdpol'] in ['native','1deg'], 'Grid policy argument --grdpol must be native or 1deg : %s' % self.adict['grdpol']
 
@@ -1784,13 +1801,14 @@ drq -m HighResMIP:Ocean.DiurnalCycle
       return
 
     if 'mcfg' in self.adict:
-      ll = string.split( self.adict['mcfg'], ',' )
+      ll = self.adict['mcfg'].split( ',' )
       assert len(ll) == 7, 'Length of model configuration argument must be 7 comma separated integers: %s' %  self.adict['mcfg']
       lli = [ int(x) for x in ll]
 
     self.sc = dreqQuery( dq=self.dq )
     self.sc.intersection = self.intersection
 
+    
     if 'grdforce' in self.adict:
       self.sc.gridPolicyForce = self.adict['grdforce']
     if 'grdpol' in self.adict:
@@ -1817,6 +1835,7 @@ drq -m HighResMIP:Ocean.DiurnalCycle
     if doSf:
       self.adict['sf'] = True
     assert not ('legacy' in self.adict and 'sf' in self.adict), "Conflicting command line argument, 'legacy' and 'sf': use only one of these"
+
     if makeXls or makeTxt or doSf:
       xlsOdir = self.adict.get( 'xlsdir', 'xls' )
       self.sc.checkDir( xlsOdir, 'xls files' )
@@ -1893,10 +1912,54 @@ drq -m HighResMIP:Ocean.DiurnalCycle
       for e in ['esm-hist','esm-hist-ext','esm-piControl','piControl-spinup','esm-piControl-spinup']:
         ss.add( self.sc.exptByLabel[ e ] )
       self.sc.exptFilterBlack = ss
-    makeXls = self.adict.get( 'xls', False )
 
+    if self.sc.exptFilterBlack != None and self.sc.exptFilter != None:
+      ss = [x for x in self.sc.exptFilter if x not in self.sc.exptFilterBlack]
+      if len(ss) == 0:
+          print ( """WARNING: filter settings give no experiments: try using --esm flag: by default esm experiments are filtered out""" )
+          return
+
+
+    makeTxt = self.adict.get( 'txt', False )
+    makeXls = self.adict.get( 'xls', False )
+    if 'txtOpts' in self.adict:
+        if self.adict['txtOpts'][0] == 'v':
+          txtOpts = NT_txtopts( 'var' )
+        else:
+          txtOpts = NT_txtopts( 'cmv' )
+    else:
+        txtOpts=None
+
+
+    exptFilters = collections.defaultdict( set )
+    for i in self.dq.coll['experiment'].items:
+## required
+       tt = tuple( i.mcfg.split( '|' )[0].strip().split(' ')  )
+## allowed
+       uu = tuple( i.mcfg.split( '|' )[1].strip().split(' ')  )
+       exptFilters[(tt,uu)].add(i.uid)
+## NB this is the default##
     if 'sf' in self.adict:
-      vs = volsum.vsum( self.sc, odsz, npy, odir=xlsOdir, tabByFreqRealm=tabByFreqRealm )
+      if self.adict.get('mcat','none') != 'none':
+        thisFilter = set()
+        ##self.sc.exptFilter = set()
+        for tt,uu in exptFilters:
+          t1 = all( [x in self.adict['_mcat'][1] for x in tt] )
+          if self.adict['mcatStrict']:
+            t1 = t1 and all( [x in (tt + uu) for x in self.adict['_mcat'][0] ] )
+          if t1:
+            thisFilter = thisFilter.union( exptFilters[(tt,uu)] )
+        if self.sc.exptFilter == None:
+           self.sc.exptFilter = thisFilter
+        else:
+           self.sc.exptFilter = thisFilter.intersection( self.sc.exptFilter )
+        if len( self.sc.exptFilter ) == 0:
+          print ( 'WARNING: filter settings give no experiments' )
+          return
+        
+      ##vs = volsum.vsum( self.sc, odsz, npy, odir=xlsOdir, tabByFreqRealm=tabByFreqRealm, txt=makeTxt,txtOpts=txtOpts, exptFilter=exptFilters['AOGCM'] )
+      vs = volsum.vsum( self.sc, odsz, npy, odir=xlsOdir, tabByFreqRealm=tabByFreqRealm, txt=makeTxt,txtOpts=txtOpts )
+      self.vs = vs
       vs.run( self.adict['m'], '%s/requestVol_%s_%s_%s' % (xlsOdir,mlab,tierMax,pmax), pmax=pmax, doxlsx=makeXls ) 
       totalOnly = False
       if len( self.adict['m'] ) == 1 or totalOnly:
@@ -1935,17 +1998,9 @@ drq -m HighResMIP:Ocean.DiurnalCycle
     adsCount = self.adict.get( 'count', False )
 
     self.getVolByMip(pmax,eid,adsCount)
-    makeTxt = self.adict.get( 'txt', False )
+
     if makeXls or makeTxt:
       mips = self.adict['m']
-
-      if 'txtOpts' in self.adict:
-        if self.adict['txtOpts'][0] == 'v':
-          txtOpts = NT_txtopts( 'var' )
-        else:
-          txtOpts = NT_txtopts( 'cmv' )
-      else:
-        txtOpts=None
 
       self.sc.xlsByMipExpt(mips,eid,pmax,odir=xlsOdir,xls=makeXls,txt=makeTxt,txtOpts=txtOpts)
 

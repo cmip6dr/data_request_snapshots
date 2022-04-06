@@ -488,7 +488,7 @@
    xs:stringDescriptionegid;
    xs:stringIdentifier for experiment groupmip;
    xs:stringMIP defining experimentmcfg;
-   xs:stringModel categorytier;
+   xs:stringModel Source Typestier;
    aa:st__integerListMonIncTier of experimentnstart;
    xs:integerNumber of start datesstarty;
    xs:stringStart yearendy;

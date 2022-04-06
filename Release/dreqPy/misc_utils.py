@@ -1,4 +1,4 @@
-import collections, string , os, sys
+import collections, os, sys
 import logging
 import time
 import difflib 
@@ -125,9 +125,9 @@ def rankCMORvars(dq):
       if i.title != ic.title:
         print ( '%s: %s, %s' % (kk, ic.title, i.title) )
         kd += 1
-      if string.find( ic.modeling_realm, ' ' ) != -1:
-         for x in string.split( ic.modeling_realm ):
-            r.add( string.strip( x ) )
+      if ic.modeling_realm.find( ' ' ) != -1:
+         for x in ic.modeling_realm.split( ):
+            r.add( x.strip( ) )
       elif ic.modeling_realm not in ['__unset__','']:
           r.add( ic.modeling_realm )
       if 'requestVar' in dq.inx.iref_by_sect[ic.uid].a:
@@ -160,9 +160,9 @@ def rankVars(dq):
     if 'CMORvar' in  dq.inx.iref_by_sect[i.uid].a:
       for cmv in dq.inx.iref_by_sect[i.uid].a['CMORvar']:
         ic = dq.inx.uid[cmv]
-        if string.find( ic.modeling_realm, ' ' ) != -1:
-          for x in string.split( ic.modeling_realm ):
-            r.add( string.strip( x ) )
+        if ic.modeling_realm.find( ' ' ) != -1:
+          for x in ic.modeling_realm.split( ):
+            r.add( x.strip( ) )
         elif ic.modeling_realm not in ['__unset__','']:
           r.add( ic.modeling_realm )
         if 'requestVar' in dq.inx.iref_by_sect[cmv].a:
@@ -363,7 +363,7 @@ class rqiSet(object):
               self.expts[ex.mip].add(id)
               self.exrqi[id].add( i.uid )
     ks = sorted( list( self.expts.keys() ) )
-    xx = string.join( ['%s: %s' % (k,len(self.expts[k])) for k in ks], ', ' )
+    xx = ', '.join( ['%s: %s' % (k,len(self.expts[k])) for k in ks] )
     print ( '%s:: %s' % (mip,xx) )
 
 class c1(object):

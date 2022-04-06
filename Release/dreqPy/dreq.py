@@ -3,7 +3,7 @@ After ingesting the XML documents (configuration and request) the module generat
 1. A collection of records
 2. Index
 """
-import xml, string, collections
+import xml, collections
 import xml.dom
 import xml.dom.minidom
 import re, shelve, os, sys
@@ -33,13 +33,26 @@ charmeTempl = """<span title="Using the CHARMe annotation system">Comment on thi
 </span>
 """
 
+dreqMonitoring = '''<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-126903002-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-126903002-1');
+</script>
+'''
+
+
 jsh='''<link type="text/css" href="/css/jquery-ui-1.8.16.custom.css" rel="Stylesheet" />
  <script src="/js/2013/jquery.min.js" type="text/javascript"></script>
  <script src="/js/2013/jquery-ui.min.js" type="text/javascript"></script>
  <script src="/js/2013/jquery.cookie.js" type="text/javascript"></script>
+%s
 
 <link type="text/css" href="/css/dreq.css" rel="Stylesheet" />
-'''
+''' % dreqMonitoring
 
 def dref(i,x):
   return i._inx.uid[i.__dict__[x]]
@@ -977,21 +990,22 @@ class loadDreq(object):
 
 ##    dreqItemBase._htmlStyle['__general__'] = {'addRemarks':True}
 
-      self.pageTmpl = """<html><head><title>%s</title>
+      self.pageTmpl = """<html><head><title>%%s</title>
+%%s
+<link rel="stylesheet" type="text/css" href="%%scss/dreq.css">
 %s
-<link rel="stylesheet" type="text/css" href="%scss/dreq.css">
 </head><body>
 
 <div id="top">
    <div id="corner"></div>
    CMIP6 Data Request
 </div>
-<div id="nav"><div><a href="%s" title="Home">Home</a></div></div>
+<div id="nav"><div><a href="%%s" title="Home">Home</a></div></div>
 
 <div id="section">
-%s
+%%s
 </div>
-</body></html>"""
+</body></html>"""  % dreqMonitoring
 
   def getHtmlItemStyle(self, sect):
     """Get the styling method associated with a given section."""
